@@ -1,0 +1,4 @@
+# Requirements for Project Kolos prototype
+flake8
+pytest
+
