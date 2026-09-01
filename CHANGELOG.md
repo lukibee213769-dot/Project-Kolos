@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Object-Oriented Programming (OOP) Support** 🎉
+  - Class definitions with `class` keyword
+  - Constructors for initialization
+  - Instance methods with `this` reference
+  - Property access and assignment (dot notation)
+  - Method calls on instances
+  - Full object instantiation with `new` keyword
+
 ## [0.1.0-alpha] - 2026-09-01
 
 ### Added
@@ -20,7 +31,4 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Modernized build system (pyproject.toml with setuptools backend)
 - Improved CI workflow for better error handling and platform separation
-
-## [Unreleased]
-- Future releases and improvements
 

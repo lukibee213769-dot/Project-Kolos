@@ -42,6 +42,39 @@ kolos run-sample    # Uruchom sample.asm
 .\.venv\Scripts\python.exe kolos_cli.py run-sample
 ```
 
+## Language Features
+
+### Object-Oriented Programming (OOP)
+
+```kolos
+class Dog {
+    fn constructor(name) {
+        this.name = name;
+    }
+    
+    fn bark() {
+        print this.name;
+        return "Woof!";
+    }
+}
+
+let dog = new Dog("Buddy");
+dog.bark()
+```
+
+### Functions & Control Flow
+
+```kolos
+fn fibonacci(n) {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+print fibonacci(10)
+```
+
 ## Setup Rust Kernel (opcjonalnie)
 
 ```bash
