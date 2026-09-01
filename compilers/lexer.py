@@ -43,7 +43,10 @@ class TokenType(Enum):
     FN = auto()
     RETURN = auto()
     PRINT = auto()
+    CLASS = auto()
+    THIS = auto()
 
+    DOT = auto()
     EOF = auto()
 
 
@@ -138,6 +141,7 @@ class Lexer:
                 "=": TokenType.ASSIGN,
                 "<": TokenType.LT,
                 ">": TokenType.GT,
+                ".": TokenType.DOT,
             }
 
             token_type = single_tokens.get(char)
@@ -231,8 +235,10 @@ class Lexer:
             "fn": TokenType.FN,
             "return": TokenType.RETURN,
             "print": TokenType.PRINT,
+            "class": TokenType.CLASS,
+            "this": TokenType.THIS,
         }
 
         token_type = keywords.get(value, TokenType.IDENTIFIER)
 
-        return Token(token_type, value, start)
+        return Token(token_type, value, start)

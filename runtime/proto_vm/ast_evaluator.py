@@ -12,6 +12,7 @@ from compilers.parser import (
     BinaryNode,
     VarDeclNode,
     AssignNode,
+    PropertyAssignNode,
     BlockNode,
     IfNode,
     WhileNode,
@@ -20,6 +21,12 @@ from compilers.parser import (
     CallNode,
     PrintNode,
     ProgramNode,
+    ClassDefNode,
+    MethodDefNode,
+    NewNode,
+    ThisNode,
+    PropertyAccessNode,
+    MethodCallNode,
 )
 
 
@@ -39,6 +46,21 @@ class KolosFunction:
     params: List[str]
     body: object
     closure: Dict[str, Any]
+
+
+@dataclass
+class KolosClass:
+    name: str
+    methods: Dict[str, 'KolosFunction']
+
+
+class KolosInstance:
+    def __init__(self, klass: KolosClass):
+        self.klass = klass
+        self.fields: Dict[str, Any] = {}
+    
+    def __repr__(self):
+        return f"<{self.klass.name} instance>"
 
 
 class ASTEvaluator:
@@ -95,6 +117,14 @@ class ASTEvaluator:
         if isinstance(node, AssignNode):
             val = self.evaluate(node.value)
             self.set_variable(node.name, val)
+            return val
+
+        if isinstance(node, PropertyAssignNode):
+            obj = self.evaluate(node.obj)
+            val = self.evaluate(node.value)
+            if not isinstance(obj, KolosInstance):
+                raise EvaluationError(f"Cannot assign property to non-object")
+            obj.fields[node.property] = val
             return val
 
         if isinstance(node, PrintNode):
@@ -224,6 +254,88 @@ class ASTEvaluator:
                 f"Unsupported binary operator: {node.operator}"
             )
 
+        if isinstance(node, ClassDefNode):
+            methods = {}
+            for method_def in node.methods:
+                method = KolosFunction(
+                    method_def.name,
+                    method_def.params,
+                    method_def.body,
+                    self.variables
+                )
+                methods[method_def.name] = method
+            klass = KolosClass(node.name, methods)
+            self.variables[node.name] = klass
+            return klass
+
+        if isinstance(node, NewNode):
+            klass = self.get_variable(node.class_name)
+            if not isinstance(klass, KolosClass):
+                raise EvaluationError(f"'{node.class_name}' is not a class")
+            
+            instance = KolosInstance(klass)
+            
+            # Call constructor if it exists
+            if "constructor" in klass.methods:
+                constructor = klass.methods["constructor"]
+                if len(node.args) != len(constructor.params):
+                    raise EvaluationError(
+                        f"Constructor for '{node.class_name}' expects "
+                        f"{len(constructor.params)} arguments, got {len(node.args)}"
+                    )
+                arg_values = [self.evaluate(arg) for arg in node.args]
+                scope = dict(constructor.closure)
+                scope["this"] = instance
+                for param, arg_val in zip(constructor.params, arg_values):
+                    scope[param] = arg_val
+                call_evaluator = ASTEvaluator(variables=scope, parent=self)
+                try:
+                    call_evaluator.evaluate(constructor.body)
+                except ReturnException:
+                    pass
+            
+            return instance
+
+        if isinstance(node, ThisNode):
+            return self.get_variable("this")
+
+        if isinstance(node, PropertyAccessNode):
+            obj = self.evaluate(node.object)
+            if not isinstance(obj, KolosInstance):
+                raise EvaluationError(f"Cannot access property on non-object")
+            if node.property in obj.fields:
+                return obj.fields[node.property]
+            raise EvaluationError(f"Object has no property '{node.property}'")
+
+        if isinstance(node, MethodCallNode):
+            obj = self.evaluate(node.obj)
+            if not isinstance(obj, KolosInstance):
+                raise EvaluationError(f"Cannot call method on non-object")
+            
+            if node.method not in obj.klass.methods:
+                raise EvaluationError(
+                    f"Class '{obj.klass.name}' has no method '{node.method}'"
+                )
+            
+            method = obj.klass.methods[node.method]
+            if len(node.args) != len(method.params):
+                raise EvaluationError(
+                    f"Method '{node.method}' expects {len(method.params)} arguments, "
+                    f"got {len(node.args)}"
+                )
+            
+            arg_values = [self.evaluate(arg) for arg in node.args]
+            scope = dict(method.closure)
+            scope["this"] = obj
+            for param, arg_val in zip(method.params, arg_values):
+                scope[param] = arg_val
+            
+            call_evaluator = ASTEvaluator(variables=scope, parent=self)
+            try:
+                return call_evaluator.evaluate(method.body)
+            except ReturnException as ret:
+                return ret.value
+
         raise EvaluationError(
             f"Unsupported AST node: {type(node).__name__}"
         )
@@ -231,4 +343,4 @@ class ASTEvaluator:
 
 def evaluate(node, variables=None):
     """Evaluate a Kolos AST node."""
-    return ASTEvaluator(variables).evaluate(node)
+    return ASTEvaluator(variables).evaluate(node)

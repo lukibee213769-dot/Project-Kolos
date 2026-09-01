@@ -56,6 +56,13 @@ class AssignNode:
 
 
 @dataclass
+class PropertyAssignNode:
+    obj: object
+    property: str
+    value: object
+
+
+@dataclass
 class BlockNode:
     statements: List[object]
 
@@ -94,6 +101,43 @@ class CallNode:
 @dataclass
 class PrintNode:
     expression: object
+
+
+@dataclass
+class MethodDefNode:
+    name: str
+    params: List[str]
+    body: object
+
+
+@dataclass
+class ClassDefNode:
+    name: str
+    methods: List[MethodDefNode]
+
+
+@dataclass
+class PropertyAccessNode:
+    object: object
+    property: str
+
+
+@dataclass
+class MethodCallNode:
+    obj: object
+    method: str
+    args: List[object]
+
+
+@dataclass
+class NewNode:
+    class_name: str
+    args: List[object]
+
+
+@dataclass
+class ThisNode:
+    pass
 
 
 @dataclass
@@ -172,6 +216,9 @@ class Parser:
         elif self.current().type == TokenType.FN:
             stmt = self.parse_fn()
             needs_semicolon = False
+        elif self.current().type == TokenType.CLASS:
+            stmt = self.parse_class()
+            needs_semicolon = False
         elif self.current().type == TokenType.RETURN:
             stmt = self.parse_return()
         elif self.current().type == TokenType.PRINT:
@@ -189,7 +236,14 @@ class Parser:
             value = self.parse_or()
             stmt = AssignNode(name, value)
         else:
-            stmt = self.parse_or()
+            expr = self.parse_or()
+            # Check for property assignment: obj.prop = value
+            if isinstance(expr, PropertyAccessNode) and self.current().type == TokenType.ASSIGN:
+                self.advance()  # consume '='
+                value = self.parse_or()
+                stmt = PropertyAssignNode(expr.object, expr.property, value)
+            else:
+                stmt = expr
 
         if needs_semicolon:
             if self.match(TokenType.SEMICOLON):
@@ -257,6 +311,29 @@ class Parser:
         self.expect(TokenType.PRINT)
         expr = self.parse_or()
         return PrintNode(expr)
+
+    def parse_class(self):
+        self.expect(TokenType.CLASS)
+        name = self.expect(TokenType.IDENTIFIER).value
+        self.expect(TokenType.LBRACE)
+        methods = []
+        
+        while self.current().type != TokenType.RBRACE and self.current().type != TokenType.EOF:
+            # Parse method: fn methodName(...) { ... }
+            self.expect(TokenType.FN)
+            method_name = self.expect(TokenType.IDENTIFIER).value
+            self.expect(TokenType.LPAREN)
+            params = []
+            if self.current().type != TokenType.RPAREN:
+                params.append(self.expect(TokenType.IDENTIFIER).value)
+                while self.match(TokenType.COMMA):
+                    params.append(self.expect(TokenType.IDENTIFIER).value)
+            self.expect(TokenType.RPAREN)
+            body = self.parse_block()
+            methods.append(MethodDefNode(method_name, params, body))
+        
+        self.expect(TokenType.RBRACE)
+        return ClassDefNode(name, methods)
 
     def parse_block(self):
         self.expect(TokenType.LBRACE)
@@ -371,6 +448,22 @@ class Parser:
                 return NumberNode(float(token.value))
             return NumberNode(int(token.value))
 
+        if token.type == TokenType.THIS:
+            self.advance()
+            return self.parse_postfix(ThisNode())
+
+        if self.current().type == TokenType.IDENTIFIER and self.current().value == "new":
+            self.advance()  # consume 'new'
+            class_name = self.expect(TokenType.IDENTIFIER).value
+            self.expect(TokenType.LPAREN)
+            args = []
+            if self.current().type != TokenType.RPAREN:
+                args.append(self.parse_or())
+                while self.match(TokenType.COMMA):
+                    args.append(self.parse_or())
+            self.expect(TokenType.RPAREN)
+            return NewNode(class_name, args)
+
         if token.type == TokenType.IDENTIFIER:
             if token.value == "True":
                 self.advance()
@@ -381,23 +474,50 @@ class Parser:
                 return BooleanNode(False)
 
             name = self.advance().value
-            if self.match(TokenType.LPAREN):
-                args = []
-                if self.current().type != TokenType.RPAREN:
-                    args.append(self.parse_or())
-                    while self.match(TokenType.COMMA):
-                        args.append(self.parse_or())
-                self.expect(TokenType.RPAREN)
-                return CallNode(name, args)
-
-            return IdentifierNode(name)
+            
+            # Handle method calls and property access
+            node = IdentifierNode(name)
+            return self.parse_postfix(node)
 
         raise ParserError(
             f"Unexpected token {token.type.name} "
             f"at position {token.position}"
         )
 
+    def parse_postfix(self, node):
+        """Handle property access and method calls."""
+        while self.current().type == TokenType.DOT:
+            self.advance()  # consume '.'
+            property_name = self.expect(TokenType.IDENTIFIER).value
+            
+            # Check if it's a method call
+            if self.current().type == TokenType.LPAREN:
+                self.advance()  # consume '('
+                args = []
+                if self.current().type != TokenType.RPAREN:
+                    args.append(self.parse_or())
+                    while self.match(TokenType.COMMA):
+                        args.append(self.parse_or())
+                self.expect(TokenType.RPAREN)
+                node = MethodCallNode(node, property_name, args)
+            else:
+                # Property access
+                node = PropertyAccessNode(node, property_name)
+        
+        # Handle function calls on identifiers
+        if isinstance(node, IdentifierNode) and self.current().type == TokenType.LPAREN:
+            self.advance()  # consume '('
+            args = []
+            if self.current().type != TokenType.RPAREN:
+                args.append(self.parse_or())
+                while self.match(TokenType.COMMA):
+                    args.append(self.parse_or())
+            self.expect(TokenType.RPAREN)
+            return CallNode(node.name, args)
+        
+        return node
+
 
 def parse(source: str):
     """Parse Kolos source code into an AST."""
-    return Parser(source).parse()
+    return Parser(source).parse()
