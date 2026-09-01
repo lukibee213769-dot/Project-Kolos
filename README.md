@@ -1,6 +1,6 @@
 # Projekt Kolos
 
-**Kolos** — амбициозny, modularny projekt: system operacyjny + język programowania + ekosystem narzędzi. 
+**Kolos** — modularny projekt: system operacyjny + język programowania + ekosystem narzędzi. 
 Wersja robocza (0.1.0-alpha).
 
 [![CI](https://github.com/lukibee213769-dot/a/actions/workflows/ci.yml/badge.svg)](https://github.com/lukibee213769-dot/a/actions)
