@@ -1,7 +1,9 @@
 __pycache__/
-.venv/
-env/
 *.pyc
+.venv/
+**/.venv/
+**/target/
+env/
 .DS_Store
 dist/
 build/

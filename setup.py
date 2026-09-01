@@ -1,10 +1,5 @@
-from setuptools import setup, find_packages
+# This file is kept for backward compatibility only.
+# All configuration has been migrated to pyproject.toml
+# Use: pip install -e .
+# or: pip install .
 
-setup(
-    name='kolos',
-    version='0.0.1',
-    description='Kolos prototype',
-    packages=find_packages(exclude=('tests', 'kernel', 'kernel.*')),
-    py_modules=['kolos_cli'],
-    entry_points={'console_scripts': ['kolos=kolos_cli:main']},
-)

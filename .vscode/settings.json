@@ -1,0 +1,23 @@
+{
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.analysis.exclude": [
+        "**/.venv/**",
+        "**/target/**",
+        "**/build/**",
+        "**/dist/**"
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.venv": true,
+        "**/target": true,
+        "**/__pycache__": true
+    }
+}

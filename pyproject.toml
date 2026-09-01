@@ -1,20 +1,41 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "kolos"
-version = "0.0.1"
-description = "Kolos prototype: runtime + kernel prototype"
-authors = ["Kolos <dev@example.com>"]
-packages = [
-	{ include = "kolos" },
-	{ include = "runtime" },
+version = "0.1.0"
+description = "Kolos: OS prototype + programming language + tooling ecosystem"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Kolos Contributors" }]
+keywords = ["language", "runtime", "vm", "bytecode", "interpreter"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "flake8"]
+
+[project.scripts]
+kolos = "kolos.cli:main"
+
+[project.urls]
+Repository = "https://github.com/lukibee213769-dot/a"
+Issues = "https://github.com/lukibee213769-dot/a/issues"
+Documentation = "https://github.com/lukibee213769-dot/a/tree/main/docs"
 
 [tool.flake8]
 max-line-length = 100
 ignore = ["E203", "W503"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-kolos = "kolos.cli:main"
+[tool.setuptools]
+packages = ["kolos", "runtime", "compilers", "tools", "pkg"]

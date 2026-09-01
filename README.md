@@ -1,50 +1,63 @@
 # Projekt Kolos
 
-Wersja robocza: "Kolos" — bardzo duży, modularny projekt: system operacyjny + język programowania + ekosystem narzędzi.
+**Kolos** — амбициозny, modularny projekt: system operacyjny + język programowania + ekosystem narzędzi. 
+Wersja robocza (0.1.0-alpha).
 
-Cel tego repozytorium: dostarczyć strukturę projektu, prototypowy runtime i narzędzia do dalszej implementacji.
+[![CI](https://github.com/lukibee213769-dot/a/actions/workflows/ci.yml/badge.svg)](https://github.com/lukibee213769-dot/a/actions)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Struktura katalogów:
+## Struktura projektu
 
-- kernel/
-- runtime/
-- compilers/
-- pkg/
-- tools/
-- infra/
-- docs/
+- **kernel/** — Rust kernel prototype (VM, scheduler, memory mgmt)
+- **runtime/** — Python bytecode VM, interpreter, REPL
+- **compilers/** — Lexer, parser, AST evaluator, bytecode assembler
+- **tools/** — Linter, formatter, diagnostics
+- **pkg/** — Package manager prototype
+- **docs/** — Architecture and design docs
+- **examples/** — Sample .kolos program files
+- **tests/** — Unit tests (Python + Rust)
 
-Szybki start:
-
-```bash
-python bootstrap.py
-```
-
-Uruchomienie CLI bez instalacji:
+## Szybki start (Python Runtime)
 
 ```powershell
-# Uruchom bez instalowania pakietu:
-.\.venv\Scripts\python.exe kolos_cli.py repl
-.\.venv\Scripts\python.exe kolos_cli.py bootstrap
-.\.venv\Scripts\python.exe kolos_cli.py run-sample
-```
-
-Uwaga: `pip install -e .` może używać `pyproject.toml` i w niektórych konfiguracjach próbować zbudować podprojekty (np. `kernel/`) — jeśli chcesz instalować jako pakiet, upewnij się, że środowisko buildowe jest poprawnie skonfigurowane.
-
-Instalacja i uruchomienie (zalecane):
-
-```powershell
+# Clone i setup venv
+git clone https://github.com/lukibee213769-dot/a.git
+cd a
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-# opcjonalnie: zainstaluj editable package
-python -m pip install -e c:\Users\Lukasz\OneDrive\guns
+pip install -r requirements.txt
+pip install -e .
 
-# użyj CLI:
-kolos repl
-kolos bootstrap
-kolos run-sample
+# Uruchom CLI:
+kolos repl          # Bytecode interpreter REPL
+kolos bootstrap     # Setup demo
+kolos run-sample    # Uruchom sample.asm
 ```
 
-Aby zbudować kernel (opcjonalnie): patrz `RUNNING.md` — zawiera instrukcje instalacji `rustup` i kroki `cargo build` / `cargo run`.
+## Alternatywnie: bez instalacji
+
+```powershell
+.\.venv\Scripts\python.exe kolos_cli.py repl
+.\.venv\Scripts\python.exe kolos_cli.py run-sample
+```
+
+## Setup Rust Kernel (opcjonalnie)
+
+```bash
+rustup update
+cd kernel
+cargo build --release
+cargo test
+```
+
+Patrz: [RUNNING.md](RUNNING.md) — pełne instrukcje.
+
+## Contributing
+
+Zainteresowany? Przeczytaj [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT — patrz [LICENSE](LICENSE).
+

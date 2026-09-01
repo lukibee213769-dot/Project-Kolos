@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,20 +13,30 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
 
       - name: Run bootstrap
         run: python bootstrap.py
 
       - name: Run unit tests
-        run: |
-          python -m unittest discover -s tests -p "test_*.py" -v
+        run: python -m pytest tests/ -v
+
       - name: Lint Python
         run: |
-          pip install flake8
-          flake8 . || true
+          flake8 . --max-line-length=100 --ignore=E203,W503 || echo "Linting warnings (non-blocking)"
+
+  rust-kernel-optional:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
       - name: Build Rust kernel
         run: |
-          cd kernel
-          cargo build --verbose
+          cd kernel && cargo build --verbose
+      - name: Test Rust kernel
+        run: |
+          cd kernel && cargo test --verbose
+
