@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kolos"
-version = "1.0.0"
+version = "1.0.1"
 description = "Kolos programming language, compiler, interpreters, and command-line tools"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -39,7 +39,7 @@ max-line-length = 100
 ignore = ["E203", "W503"]
 
 [tool.setuptools.packages.find]
-include = ["kolos*", "runtime*", "compilers*", "tools*", "pkg*"]
+include = ["kolos*", "runtime*", "compilers*", "tools*"]
 
 [tool.setuptools.package-data]
 "runtime.bytecode" = ["sample.asm"]

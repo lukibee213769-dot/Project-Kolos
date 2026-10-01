@@ -19,6 +19,12 @@ All notable changes to this project will be documented in this file.
 - Corrected package metadata and GitHub repository links; builds now produce source and wheel distributions.
 - CI now blocks on Python correctness lint, runs the declared Python-version matrix, builds distributions, and smoke-tests the installed CLI.
 
+## [1.0.1] - 2026-10-01
+
+### Fixed
+- Excluded the unfinished package-manager workspace from the stable Python distribution; kernel code was already excluded from the wheel and source archive.
+- Clarified the supported release scope and aligned package and interpreter versions.
+
 ## [0.1.0-alpha] - 2026-09-01
 
 ### Added

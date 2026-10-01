@@ -1,19 +1,19 @@
 # Projekt Kolos
 
-**Kolos 1.0.0** is the stable release of the Kolos programming language, compiler, Python interpreters, and CLI.
+**Kolos 1.0.1** is the stable release of the Kolos programming language, compiler, Python interpreters, and CLI.
 
-The Rust kernel and package manager are experimental prototypes, not a production operating system or dependency manager. This release's support guarantee applies to the Python language toolchain described below.
+The supported distribution contains only the language toolchain described below. The separate Rust kernel and package-manager workspaces are not included in the release artifacts or covered by its support guarantee.
 
 [![CI](https://github.com/lukibee213769-dot/Project-Kolos/actions/workflows/ci.yml/badge.svg)](https://github.com/lukibee213769-dot/Project-Kolos/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Struktura projektu
 
-- **kernel/** — Rust kernel prototype (VM, scheduler, memory mgmt)
+- **kernel/** — separate Rust systems research workspace; not part of the release distribution
 - **runtime/** — Python bytecode VM, interpreter, REPL
 - **compilers/** — Lexer, parser, AST evaluator, bytecode assembler
 - **tools/** — Linter, formatter, diagnostics
-- **pkg/** — local package manifest prototype; dependency installation/resolution is not implemented
+- **pkg/** — package-management work in progress; not part of the release distribution
 - **docs/** — Architecture and design docs
 - **examples/** — Sample .kolos program files
 - **tests/** — Unit tests (Python + Rust)
