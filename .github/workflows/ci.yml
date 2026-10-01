@@ -58,9 +58,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install QEMU
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt-get update -qq
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends qemu-system-x86
+          timeout 180s sudo apt-get update -qq
+          timeout 180s sudo apt-get install -y --no-install-recommends qemu-system-x86
       - name: Install nightly Rust and kernel targets
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -72,6 +74,8 @@ jobs:
           cargo run -- uefi 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
           result=${PIPESTATUS[0]}
           if [ "$result" -ne 0 ]; then
+            excerpt=$(tail -n 30 "$RUNNER_TEMP/kolos-qemu.log" | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
+            echo "::error title=Kolos OS QEMU build failed::$excerpt"
             {
               echo '## Kolos OS QEMU failure'
               echo '```text'
