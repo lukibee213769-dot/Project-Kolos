@@ -44,8 +44,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-        - name: Check Rust formatting
-          run: cd kernel && cargo fmt --all -- --check
+      - name: Check Rust formatting
+        run: cd kernel && cargo fmt --all -- --check
       - name: Build Rust kernel
         run: |
           cd kernel && cargo build --verbose
