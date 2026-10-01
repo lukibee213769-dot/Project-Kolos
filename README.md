@@ -1,9 +1,10 @@
 # Projekt Kolos
 
-**Kolos** — modularny projekt: system operacyjny + język programowania + ekosystem narzędzi. 
-Wersja robocza (0.1.0-alpha).
+**Kolos 1.0.0** is the stable release of the Kolos programming language, compiler, Python interpreters, and CLI.
 
-[![CI](https://github.com/lukibee213769-dot/a/actions/workflows/ci.yml/badge.svg)](https://github.com/lukibee213769-dot/a/actions)
+The Rust kernel and package manager are experimental prototypes, not a production operating system or dependency manager. This release's support guarantee applies to the Python language toolchain described below.
+
+[![CI](https://github.com/lukibee213769-dot/Project-Kolos/actions/workflows/ci.yml/badge.svg)](https://github.com/lukibee213769-dot/Project-Kolos/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Struktura projektu
@@ -12,7 +13,7 @@ Wersja robocza (0.1.0-alpha).
 - **runtime/** — Python bytecode VM, interpreter, REPL
 - **compilers/** — Lexer, parser, AST evaluator, bytecode assembler
 - **tools/** — Linter, formatter, diagnostics
-- **pkg/** — Package manager prototype
+- **pkg/** — local package manifest prototype; dependency installation/resolution is not implemented
 - **docs/** — Architecture and design docs
 - **examples/** — Sample .kolos program files
 - **tests/** — Unit tests (Python + Rust)
@@ -21,8 +22,8 @@ Wersja robocza (0.1.0-alpha).
 
 ```powershell
 # Clone i setup venv
-git clone https://github.com/lukibee213769-dot/a.git
-cd a
+git clone https://github.com/lukibee213769-dot/Project-Kolos.git
+cd Project-Kolos
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

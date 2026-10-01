@@ -1,5 +1,6 @@
 """Kolos CLI entrypoint for developer convenience."""
 import argparse
+from importlib.resources import as_file, files
 import sys
 
 
@@ -18,7 +19,9 @@ def run_repl():
 def run_sample():
     from runtime.proto_vm.main import run_file
 
-    print(run_file("tests/sample.asm"))
+    sample = files("runtime.bytecode").joinpath("sample.asm")
+    with as_file(sample) as sample_path:
+        print(run_file(str(sample_path)))
 
 
 def main(argv=None):

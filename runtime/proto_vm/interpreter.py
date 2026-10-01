@@ -4,7 +4,7 @@ import platform
 import time
 
 
-VERSION = "v0.0.1"
+VERSION = "v1.0.0"
 
 
 class EvalError(Exception):

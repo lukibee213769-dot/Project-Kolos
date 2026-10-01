@@ -7,8 +7,15 @@ pub enum Instruction {
     Dup,
     Store(String),
     Load(String),
-    DefFn { name: String, params: Vec<String>, target_ip: usize },
-    Call { name: String, argc: usize },
+    DefFn {
+        name: String,
+        params: Vec<String>,
+        target_ip: usize,
+    },
+    Call {
+        name: String,
+        argc: usize,
+    },
     Ret,
     Add,
     Sub,

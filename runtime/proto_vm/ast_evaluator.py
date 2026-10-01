@@ -22,7 +22,6 @@ from compilers.parser import (
     PrintNode,
     ProgramNode,
     ClassDefNode,
-    MethodDefNode,
     NewNode,
     ThisNode,
     PropertyAccessNode,
@@ -123,7 +122,7 @@ class ASTEvaluator:
             obj = self.evaluate(node.obj)
             val = self.evaluate(node.value)
             if not isinstance(obj, KolosInstance):
-                raise EvaluationError(f"Cannot assign property to non-object")
+                raise EvaluationError("Cannot assign property to non-object")
             obj.fields[node.property] = val
             return val
 
@@ -205,8 +204,15 @@ class ASTEvaluator:
 
         if isinstance(node, BinaryNode):
             left = self.evaluate(node.left)
-            right = self.evaluate(node.right)
             operator = node.operator.name
+
+            if operator == "AND":
+                return self.evaluate(node.right) if left else left
+
+            if operator == "OR":
+                return left if left else self.evaluate(node.right)
+
+            right = self.evaluate(node.right)
 
             if operator == "PLUS":
                 return left + right
@@ -243,12 +249,6 @@ class ASTEvaluator:
 
             if operator == "GE":
                 return left >= right
-
-            if operator == "AND":
-                return left and right
-
-            if operator == "OR":
-                return left or right
 
             raise EvaluationError(
                 f"Unsupported binary operator: {node.operator}"
@@ -302,7 +302,7 @@ class ASTEvaluator:
         if isinstance(node, PropertyAccessNode):
             obj = self.evaluate(node.object)
             if not isinstance(obj, KolosInstance):
-                raise EvaluationError(f"Cannot access property on non-object")
+                raise EvaluationError("Cannot access property on non-object")
             if node.property in obj.fields:
                 return obj.fields[node.property]
             raise EvaluationError(f"Object has no property '{node.property}'")
@@ -310,7 +310,7 @@ class ASTEvaluator:
         if isinstance(node, MethodCallNode):
             obj = self.evaluate(node.obj)
             if not isinstance(obj, KolosInstance):
-                raise EvaluationError(f"Cannot call method on non-object")
+                raise EvaluationError("Cannot call method on non-object")
             
             if node.method not in obj.klass.methods:
                 raise EvaluationError(

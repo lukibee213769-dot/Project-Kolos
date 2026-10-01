@@ -1,7 +1,7 @@
-pub mod value;
 pub mod instruction;
 pub mod machine;
+pub mod value;
 
-pub use value::Value;
 pub use instruction::Instruction;
-pub use machine::{Vm, VmError, CallFrame};
+pub use machine::{CallFrame, Vm, VmError};
+pub use value::Value;

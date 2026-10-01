@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use super::instruction::Instruction;
 use super::value::Value;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct CallFrame {
@@ -16,7 +16,11 @@ pub enum VmError {
     ModuloByZero,
     UndefinedVariable(String),
     UndefinedFunction(String),
-    ArgumentMismatch { name: String, expected: usize, got: usize },
+    ArgumentMismatch {
+        name: String,
+        expected: usize,
+        got: usize,
+    },
     TypeMismatch(&'static str),
 }
 
@@ -57,7 +61,11 @@ impl Vm {
                 self.stack.pop().ok_or(VmError::StackUnderflow("POP"))?;
             }
             Instruction::Dup => {
-                let top = self.stack.last().cloned().ok_or(VmError::StackUnderflow("DUP"))?;
+                let top = self
+                    .stack
+                    .last()
+                    .cloned()
+                    .ok_or(VmError::StackUnderflow("DUP"))?;
                 self.stack.push(top);
             }
             Instruction::Store(name) => {
@@ -84,11 +92,17 @@ impl Vm {
                     None => return Err(VmError::UndefinedVariable(name)),
                 }
             }
-            Instruction::DefFn { name, params, target_ip } => {
+            Instruction::DefFn {
+                name,
+                params,
+                target_ip,
+            } => {
                 self.functions.insert(name, (params, target_ip));
             }
             Instruction::Call { name, argc } => {
-                let (params, target_ip) = self.functions.get(&name)
+                let (params, target_ip) = self
+                    .functions
+                    .get(&name)
                     .cloned()
                     .ok_or_else(|| VmError::UndefinedFunction(name.clone()))?;
 
@@ -102,7 +116,11 @@ impl Vm {
 
                 let mut args = Vec::with_capacity(argc);
                 for _ in 0..argc {
-                    args.push(self.stack.pop().ok_or(VmError::StackUnderflow("CALL args"))?);
+                    args.push(
+                        self.stack
+                            .pop()
+                            .ok_or(VmError::StackUnderflow("CALL args"))?,
+                    );
                 }
                 args.reverse();
 
@@ -133,7 +151,9 @@ impl Vm {
                 match (a, b) {
                     (Value::Int(x), Value::Int(y)) => self.stack.push(Value::Int(x + y)),
                     (Value::Float(x), Value::Float(y)) => self.stack.push(Value::Float(x + y)),
-                    (Value::Str(x), Value::Str(y)) => self.stack.push(Value::Str(format!("{}{}", x, y))),
+                    (Value::Str(x), Value::Str(y)) => {
+                        self.stack.push(Value::Str(format!("{}{}", x, y)))
+                    }
                     _ => return Err(VmError::TypeMismatch("ADD")),
                 }
             }
@@ -160,11 +180,15 @@ impl Vm {
                 let a = self.stack.pop().ok_or(VmError::StackUnderflow("DIV"))?;
                 match (a, b) {
                     (Value::Int(x), Value::Int(y)) => {
-                        if y == 0 { return Err(VmError::DivisionByZero); }
+                        if y == 0 {
+                            return Err(VmError::DivisionByZero);
+                        }
                         self.stack.push(Value::Int(x / y));
                     }
                     (Value::Float(x), Value::Float(y)) => {
-                        if y == 0.0 { return Err(VmError::DivisionByZero); }
+                        if y == 0.0 {
+                            return Err(VmError::DivisionByZero);
+                        }
                         self.stack.push(Value::Float(x / y));
                     }
                     _ => return Err(VmError::TypeMismatch("DIV")),
@@ -184,7 +208,9 @@ impl Vm {
                 let a = self.stack.pop().ok_or(VmError::StackUnderflow("MOD"))?;
                 match (a, b) {
                     (Value::Int(x), Value::Int(y)) => {
-                        if y == 0 { return Err(VmError::ModuloByZero); }
+                        if y == 0 {
+                            return Err(VmError::ModuloByZero);
+                        }
                         self.stack.push(Value::Int(x % y));
                     }
                     _ => return Err(VmError::TypeMismatch("MOD")),
@@ -261,11 +287,15 @@ impl Vm {
             Instruction::Jmp(target) => self.ip = target,
             Instruction::Jz(target) => {
                 let val = self.stack.pop().ok_or(VmError::StackUnderflow("JZ"))?;
-                if !val.is_truthy() { self.ip = target; }
+                if !val.is_truthy() {
+                    self.ip = target;
+                }
             }
             Instruction::Jnz(target) => {
                 let val = self.stack.pop().ok_or(VmError::StackUnderflow("JNZ"))?;
-                if val.is_truthy() { self.ip = target; }
+                if val.is_truthy() {
+                    self.ip = target;
+                }
             }
             Instruction::Print => {
                 let val = self.stack.pop().ok_or(VmError::StackUnderflow("PRINT"))?;

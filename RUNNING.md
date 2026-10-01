@@ -1,7 +1,7 @@
 # How to run Project Kolos (summary)
 
 Prerequisites:
-- Python 3.11+ and a venv (recommended)
+- Python 3.10+ and a venv (recommended)
 - (Optional) Rust toolchain (`rustup`, `cargo`) to build the kernel prototype
 
 Quick setup (PowerShell):

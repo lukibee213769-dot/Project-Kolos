@@ -1,4 +1,5 @@
 # Requirements for Project Kolos prototype
 flake8
+build>=1.2.2
 pytest
 

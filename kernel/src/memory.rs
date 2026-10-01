@@ -43,10 +43,23 @@ impl FrameAllocator {
 }
 
 pub fn init() {
-    println!("[Kernel:Memory] Initializing Frame Allocator (4MB prototype, {} pages)", TOTAL_PAGES);
+    println!(
+        "[Kernel:Memory] Initializing Frame Allocator (4MB prototype, {} pages)",
+        TOTAL_PAGES
+    );
     let mut allocator = FrameAllocator::new();
-    let frame1 = allocator.alloc_frame().expect("Failed to alloc initial page");
-    println!("[Kernel:Memory] First page allocated at 0x{:08X}, free pages: {}", frame1, allocator.free_frames_count());
+    let frame1 = allocator
+        .alloc_frame()
+        .expect("Failed to alloc initial page");
+    println!(
+        "[Kernel:Memory] First page allocated at 0x{:08X}, free pages: {}",
+        frame1,
+        allocator.free_frames_count()
+    );
     allocator.free_frame(frame1);
-    println!("[Kernel:Memory] Page 0x{:08X} freed, free pages: {}", frame1, allocator.free_frames_count());
+    println!(
+        "[Kernel:Memory] Page 0x{:08X} freed, free pages: {}",
+        frame1,
+        allocator.free_frames_count()
+    );
 }

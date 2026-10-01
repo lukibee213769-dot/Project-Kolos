@@ -27,6 +27,10 @@ class TestASTEvaluator(unittest.TestCase):
             evaluate(parse("5 > 3 and 2 < 4"))
         )
 
+    def test_logical_operators_short_circuit(self):
+        self.assertFalse(evaluate(parse("False and (1 / 0)")))
+        self.assertTrue(evaluate(parse("True or (1 / 0)")))
+
     def test_logical_not(self):
         self.assertFalse(
             evaluate(parse("not (5 > 3)"))

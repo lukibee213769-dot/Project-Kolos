@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.0.0] - 2026-10-01
 
 ### Added
 - **Object-Oriented Programming (OOP) Support** 🎉
@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file.
   - Property access and assignment (dot notation)
   - Method calls on instances
   - Full object instantiation with `new` keyword
+
+### Fixed
+- Logical `and` and `or` now short-circuit instead of evaluating skipped expressions.
+- Installed packages include nested runtime modules and the sample assembly used by `kolos run-sample`.
+- Corrected package metadata and GitHub repository links; builds now produce source and wheel distributions.
+- CI now blocks on Python correctness lint, runs the declared Python-version matrix, builds distributions, and smoke-tests the installed CLI.
 
 ## [0.1.0-alpha] - 2026-09-01
 

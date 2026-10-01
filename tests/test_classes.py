@@ -18,7 +18,7 @@ class TestClassDefinition:
         }
         '''
         # Should not raise
-        result = evaluate(parse(code))
+        evaluate(parse(code))
 
     def test_class_with_constructor(self):
         """Test class with constructor."""
@@ -104,6 +104,12 @@ class TestClassDefinition:
         '''
         result = evaluate(parse(code))
         assert result == 25
+
+    def test_missing_property_raises_evaluation_error(self):
+        code = "class Empty {} let item = new Empty(); item.missing"
+
+        with pytest.raises(EvaluationError, match="Object has no property 'missing'"):
+            evaluate(parse(code))
 
     def test_method_with_this_reference(self):
         """Test using this in methods."""

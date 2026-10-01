@@ -28,7 +28,7 @@ class TestProtoVM(unittest.TestCase):
         result = output.getvalue()
 
         self.assertIn("Kolos Runtime Diagnostic", result)
-        self.assertIn("Version:     v0.0.1", result)
+        self.assertIn(f"Version:     {interpreter.VERSION}", result)
         self.assertIn("Runtime:     ONLINE", result)
         self.assertIn("REPL:        ONLINE", result)
         self.assertIn("Evaluator:   ONLINE", result)

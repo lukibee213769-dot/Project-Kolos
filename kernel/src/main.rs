@@ -1,5 +1,5 @@
-mod scheduler;
 mod memory;
+mod scheduler;
 pub mod vm;
 
 use vm::{Instruction, Value, Vm};
@@ -36,7 +36,10 @@ fn main() {
     let mut machine = Vm::new(program);
     match machine.run() {
         Ok(Some(result)) => {
-            println!("[Kernel:VM] Program completed successfully with result: {}", result);
+            println!(
+                "[Kernel:VM] Program completed successfully with result: {}",
+                result
+            );
         }
         Ok(None) => {
             println!("[Kernel:VM] Program completed with no return value");

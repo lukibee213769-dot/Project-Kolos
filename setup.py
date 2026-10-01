@@ -3,3 +3,7 @@
 # Use: pip install -e .
 # or: pip install .
 
+from setuptools import setup
+
+setup()
+

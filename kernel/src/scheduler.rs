@@ -1,5 +1,4 @@
 /// Multi-tasking scheduler for Kolos Kernel.
-
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,7 +45,10 @@ impl Scheduler {
         println!("[Kernel:Scheduler] Starting round-robin task execution");
         while let Some(mut task) = self.tasks.pop_front() {
             task.state = TaskState::Running;
-            println!("[Kernel:Scheduler] Executing task #{} ({})", task.id, task.name);
+            println!(
+                "[Kernel:Scheduler] Executing task #{} ({})",
+                task.id, task.name
+            );
             task.state = TaskState::Terminated;
         }
         println!("[Kernel:Scheduler] All tasks completed");
