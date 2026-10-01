@@ -65,6 +65,18 @@ jobs:
           targets: x86_64-unknown-none,x86_64-unknown-uefi
           components: llvm-tools-preview
       - name: Build and boot Kolos OS in QEMU
-        run: cargo run -- uefi
+        run: |
+          set +e
+          cargo run -- uefi 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
+          result=${PIPESTATUS[0]}
+          if [ "$result" -ne 0 ]; then
+            {
+              echo '## Kolos OS QEMU failure'
+              echo '```text'
+              tail -n 100 "$RUNNER_TEMP/kolos-qemu.log"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$result"
         working-directory: kernel/os
 
