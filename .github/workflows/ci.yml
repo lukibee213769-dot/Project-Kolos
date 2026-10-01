@@ -53,3 +53,18 @@ jobs:
         run: |
           cd kernel && cargo test --verbose
 
+  bootable-os-qemu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install QEMU
+        run: sudo apt-get update && sudo apt-get install -y qemu-system-x86
+      - name: Install nightly Rust and kernel targets
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: x86_64-unknown-none,x86_64-unknown-uefi
+          components: llvm-tools-preview
+      - name: Build and boot Kolos OS in QEMU
+        run: cargo run -- uefi
+        working-directory: kernel/os
+
