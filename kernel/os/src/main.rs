@@ -1,19 +1,15 @@
 use ovmf_prebuilt::{Arch, FileType, Prebuilt, Source};
-use std::process::{Command, Stdio};
-use std::sync::{Arc, Mutex};
+use std::io::Read;
+use std::process::{Child, Command, Stdio};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const QEMU_TIMEOUT: Duration = Duration::from_secs(120);
+const POLL_INTERVAL: Duration = Duration::from_millis(200);
 
-fn main() {
-    let image = env!("KOLOS_UEFI_IMAGE");
-    let firmware =
-        Prebuilt::fetch(Source::LATEST, "target/ovmf").expect("download or locate OVMF firmware");
-    let code = firmware.get_file(Arch::X64, FileType::Code);
-    let vars = firmware.get_file(Arch::X64, FileType::Vars);
-
-    let child = Command::new("qemu-system-x86_64")
+fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path) -> Child {
+    let mut command = Command::new("qemu-system-x86_64");
+    command
         .args(["-machine", "q35", "-m", "256M", "-serial", "stdio"])
         .args(["-display", "none", "-no-reboot", "-no-shutdown"])
         .args(["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"])
@@ -33,50 +29,76 @@ fn main() {
             ),
         ])
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::piped());
+    command
         .spawn()
-        .expect("start QEMU; install qemu-system-x86_64 first");
+        .expect("start QEMU; install qemu-system-x86_64 first")
+}
+
+fn main() {
+    let image = env!("KOLOS_UEFI_IMAGE");
+    let firmware =
+        Prebuilt::fetch(Source::LATEST, "target/ovmf").expect("download or locate OVMF firmware");
+    let code = firmware.get_file(Arch::X64, FileType::Code);
+    let vars = firmware.get_file(Arch::X64, FileType::Vars);
+
+    let mut child = spawn_qemu(image, &code, &vars);
+    let mut serial = child.stdout.take().expect("QEMU stdout is piped");
 
     // The kernel exits QEMU through isa-debug-exit. If it never reaches that
-    // port (boot failure or firmware hang) we must not block CI forever, so a
-    // watchdog kills the VM once the timeout elapses.
-    let child = Arc::new(Mutex::new(Some(child)));
-    let watchdog_child = Arc::clone(&child);
-    let timed_out = Arc::new(Mutex::new(false));
-    let watchdog_flag = Arc::clone(&timed_out);
+    // port (boot failure or firmware hang) we must not block CI forever, so the
+    // serial console is drained on a helper thread while this thread polls the
+    // process and kills it once the timeout elapses. No shared lock is involved,
+    // which is what previously deadlocked the watchdog.
+    let (sender, receiver) = std::sync::mpsc::channel();
     thread::spawn(move || {
-        thread::sleep(QEMU_TIMEOUT);
-        let mut guard = watchdog_child.lock().expect("QEMU handle mutex");
-        if let Some(mut qemu) = guard.take() {
-            *watchdog_flag.lock().expect("timeout flag mutex") = true;
-            let _ = qemu.kill();
-            let _ = qemu.wait();
-        }
+        let mut buffer = Vec::new();
+        let _ = serial.read_to_end(&mut buffer);
+        let _ = sender.send(buffer);
     });
 
-    let output = {
-        let mut guard = child.lock().expect("QEMU handle mutex");
-        let mut qemu = guard.take().expect("QEMU process handle");
-        qemu.wait_with_output().expect("wait for QEMU to finish")
+    let deadline = Instant::now() + QEMU_TIMEOUT;
+    let mut timed_out = false;
+    let status = loop {
+        match child.try_wait().expect("poll QEMU process") {
+            Some(status) => break status,
+            None if Instant::now() >= deadline => {
+                timed_out = true;
+                let _ = child.kill();
+                break child.wait().expect("reap killed QEMU process");
+            }
+            None => thread::sleep(POLL_INTERVAL),
+        }
     };
 
-    if *timed_out.lock().expect("timeout flag mutex") {
+    let stdout = receiver.recv().unwrap_or_default();
+    let stderr = drain_stderr(&mut child);
+
+    if timed_out {
         eprintln!("Kolos boot timed out after {QEMU_TIMEOUT:?}; QEMU never exited");
-        std::process::exit(1);
     }
 
-    print!("{}", String::from_utf8_lossy(&output.stdout));
-    eprint!("{}", String::from_utf8_lossy(&output.stderr));
+    print!("{}", String::from_utf8_lossy(&stdout));
+    eprint!("{}", String::from_utf8_lossy(&stderr));
 
-    let booted = String::from_utf8_lossy(&output.stdout).contains("KOLOS_BOOT_OK");
-    // isa-debug-exit maps 0x10 → (0x10 << 1) | 1 = 33 on Linux
-    let expected_exit = matches!(output.status.code(), Some(33));
+    let booted = String::from_utf8_lossy(&stdout).contains("KOLOS_BOOT_OK");
+    // isa-debug-exit maps 0x10 -> (0x10 << 1) | 1 = 33 on Linux
+    let expected_exit = matches!(status.code(), Some(33));
     if !booted || !expected_exit {
         eprintln!(
-            "Kolos failed to boot: exit_code={:?}, KOLOS_BOOT_OK_marker={}",
-            output.status.code(),
+            "Kolos failed to boot: exit_code={:?}, KOLOS_BOOT_OK_marker={}, timed_out={timed_out}",
+            status.code(),
             booted,
         );
         std::process::exit(1);
     }
+}
+
+fn drain_stderr(child: &mut Child) -> Vec<u8> {
+    let Some(mut stderr) = child.stderr.take() else {
+        return Vec::new();
+    };
+    let mut buffer = Vec::new();
+    let _ = stderr.read_to_end(&mut buffer);
+    buffer
 }
