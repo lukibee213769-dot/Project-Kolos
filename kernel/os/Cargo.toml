@@ -10,8 +10,11 @@ edition = "2021"
 [dependencies]
 ovmf-prebuilt = "0.2.4"
 # Artifact dependency: exposes CARGO_BIN_FILE_KERNEL_kernel to build.rs,
-# which wraps the kernel into a bootable UEFI disk image.
-kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-uefi" }
+# which wraps the kernel into a bootable UEFI disk image. The kernel exports
+# `_start` via bootloader_api::entry_point!, so it must be a bare-metal
+# x86_64-unknown-none binary - not an EFI application (that link flavor
+# expects `efi_main` and fails with "undefined symbol: efi_main").
+kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-none" }
 
 [build-dependencies]
 bootloader = "0.11.17"
