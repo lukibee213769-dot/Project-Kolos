@@ -27,13 +27,18 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.1 updated] - 2026-10-02
 
+The bootable Kolos OS job (`bootable-os-qemu`) now passes end to end: the UEFI
+image builds and the kernel actually boots in QEMU.
+
 ### Fixed
 - Bootable Kolos OS: declared the UEFI kernel as a Cargo artifact dependency so the build order is explicit, then removed it again once it became clear that `CARGO_BIN_FILE_KERNEL_kernel` is not populated for a cross-target artifact.
 - Bootable Kolos OS: replaced the blocking `Command::output()` with a polled supervisor — the serial console is drained on a helper thread and the main thread polls `try_wait()`, killing the VM after 120 s. An earlier `Arc<Mutex<Child>>` watchdog deadlocked against `wait_with_output()` and hung the job until the 10-minute step timeout.
 - Bootable Kolos OS: `build.rs` now invokes `cargo build -p kernel --target x86_64-unknown-none` itself and reads the artifact from the target directory. Cargo only sets `CARGO_BIN_FILE_*` when the artifact target matches the dependent package's target, which never held for a host runner driving a bare-metal kernel.
 - Bootable Kolos OS: the kernel is built for `x86_64-unknown-none`, not `x86_64-unknown-uefi`. `bootloader_api::entry_point!` exports `_start`; the EFI application link flavor expects `efi_main` and failed with "undefined symbol: efi_main".
+- Bootable Kolos OS: the nested kernel build now writes to `target/kernel-build/`. Sharing the outer target directory deadlocked the build, because the parent Cargo holds an exclusive lock on it for the entire build.
 - Bootable Kolos OS: added the `rust-src` component (required by the bootloader build) to `rust-toolchain.toml` and to the CI toolchain step.
 - Bootable Kolos OS: dropped the stray `uefi` argument from `cargo run -Zbindeps -- uefi`, which Cargo forwarded to the runner binary.
+- CI: split the QEMU job into separate build (25 min budget) and boot (5 min budget) steps, and raised the apt timeouts. The single combined step kept hitting the 10-minute step limit.
 - CI: upgraded `actions/checkout` and `actions/setup-python` to Node 24-compatible releases to clear the deprecation notice.
 - Repository: stopped tracking the generated `kernel/target/` build directory that had been committed by accident.
 
