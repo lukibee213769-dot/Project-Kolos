@@ -1,15 +1,17 @@
 [workspace]
-resolver = "3"
+resolver = "2"
 members = ["kernel"]
 
 [package]
-name = "kolos-os"
+name = "kolos-os-runner"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 ovmf-prebuilt = "0.2.4"
+# Artifact dependency: exposes CARGO_BIN_FILE_KERNEL_kernel to build.rs,
+# which wraps the kernel into a bootable UEFI disk image.
+kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-uefi" }
 
 [build-dependencies]
 bootloader = "0.11.17"
-kernel = { path = "kernel", artifact = "bin", target = "x86_64-unknown-none" }

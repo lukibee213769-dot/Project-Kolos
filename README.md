@@ -1,6 +1,6 @@
 # Projekt Kolos
 
-**Kolos 1.0.1** is the stable release of the Kolos programming language, compiler, Python interpreters, and CLI.
+**Kolos 1.0.1 updated** is the stable release of the Kolos programming language, compiler, Python interpreters, and CLI.
 
 The supported distribution contains only the language toolchain described below. The separate Rust kernel and package-manager workspaces are not included in the release artifacts or covered by its support guarantee.
 
@@ -52,7 +52,7 @@ class Dog {
     fn constructor(name) {
         this.name = name;
     }
-    
+
     fn bark() {
         print this.name;
         return "Woof!";
@@ -84,6 +84,21 @@ cd kernel
 cargo build --release
 cargo test
 ```
+
+### Bootowalne Kolos OS (eksperymentalne)
+
+`kernel/os/` to osobny workspace nightly Rust z bootowalnym jądrem UEFI x86-64
+i testem smoke w QEMU:
+
+```bash
+cd kernel/os
+rustup component add rust-src llvm-tools-preview
+cargo run -Z bindeps
+```
+
+Wymaga `qemu-system-x86_64` na PATH. Jądro wypisuje mapę pamięci na COM1,
+drukuje znacznik `KOLOS_BOOT_OK` i kończy QEMU przez `isa-debug-exit`; runner
+zabije VM po 120 s, jeśli boot się zawiesi.
 
 Patrz: [RUNNING.md](RUNNING.md) — pełne instrukcje.
 
