@@ -1,4 +1,4 @@
-"""Recursive-descent parser for the Kolos language."""
+﻿"""Recursive-descent parser for the Kolos language."""
 
 from dataclasses import dataclass
 from typing import List, Optional
@@ -317,7 +317,7 @@ class Parser:
         name = self.expect(TokenType.IDENTIFIER).value
         self.expect(TokenType.LBRACE)
         methods = []
-        
+
         while self.current().type != TokenType.RBRACE and self.current().type != TokenType.EOF:
             # Parse method: fn methodName(...) { ... }
             self.expect(TokenType.FN)
@@ -331,7 +331,7 @@ class Parser:
             self.expect(TokenType.RPAREN)
             body = self.parse_block()
             methods.append(MethodDefNode(method_name, params, body))
-        
+
         self.expect(TokenType.RBRACE)
         return ClassDefNode(name, methods)
 
@@ -474,7 +474,7 @@ class Parser:
                 return BooleanNode(False)
 
             name = self.advance().value
-            
+
             # Handle method calls and property access
             node = IdentifierNode(name)
             return self.parse_postfix(node)
@@ -489,7 +489,7 @@ class Parser:
         while self.current().type == TokenType.DOT:
             self.advance()  # consume '.'
             property_name = self.expect(TokenType.IDENTIFIER).value
-            
+
             # Check if it's a method call
             if self.current().type == TokenType.LPAREN:
                 self.advance()  # consume '('
@@ -503,7 +503,7 @@ class Parser:
             else:
                 # Property access
                 node = PropertyAccessNode(node, property_name)
-        
+
         # Handle function calls on identifiers
         if isinstance(node, IdentifierNode) and self.current().type == TokenType.LPAREN:
             self.advance()  # consume '('
@@ -514,7 +514,7 @@ class Parser:
                     args.append(self.parse_or())
             self.expect(TokenType.RPAREN)
             return CallNode(node.name, args)
-        
+
         return node
 
 

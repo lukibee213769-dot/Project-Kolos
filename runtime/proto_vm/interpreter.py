@@ -1,4 +1,4 @@
-"""A tiny safe expression evaluator and REPL for the proto VM."""
+﻿"""A tiny safe expression evaluator and REPL for the proto VM."""
 import ast
 import platform
 import time

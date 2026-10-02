@@ -1,4 +1,4 @@
-"""Stack-based bytecode virtual machine with call frames and variables."""
+﻿"""Stack-based bytecode virtual machine with call frames and variables."""
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple

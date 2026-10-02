@@ -1,4 +1,4 @@
-"""Tests for Kolos class support."""
+﻿"""Tests for Kolos class support."""
 
 import pytest
 from compilers.parser import parse
@@ -27,12 +27,12 @@ class TestClassDefinition:
             fn constructor(name) {
                 this.name = name;
             }
-            
+
             fn bark() {
                 return this.name;
             }
         }
-        
+
         let d = new Dog("Buddy");
         d.bark()
         '''
@@ -48,7 +48,7 @@ class TestClassDefinition:
                 this.y = y;
             }
         }
-        
+
         let p = new Point(3, 4);
         p
         '''
@@ -64,7 +64,7 @@ class TestClassDefinition:
                 return a + b;
             }
         }
-        
+
         let calc = new Calculator();
         calc.add(2, 3)
         '''
@@ -78,12 +78,12 @@ class TestClassDefinition:
             fn multiply(a, b) {
                 return a * b;
             }
-            
+
             fn square(x) {
                 return this.multiply(x, x);
             }
         }
-        
+
         let m = new Math();
         m.square(4)
         '''
@@ -98,7 +98,7 @@ class TestClassDefinition:
                 this.age = age;
             }
         }
-        
+
         let p = new Person(25);
         p.age
         '''
@@ -118,12 +118,12 @@ class TestClassDefinition:
             fn constructor(radius) {
                 this.radius = radius;
             }
-            
+
             fn area() {
                 return 3.14 * this.radius ** 2;
             }
         }
-        
+
         let c = new Circle(5);
         c.area()
         '''

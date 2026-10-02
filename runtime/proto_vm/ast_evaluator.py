@@ -1,4 +1,4 @@
-"""Evaluator for Kolos compiler AST."""
+﻿"""Evaluator for Kolos compiler AST."""
 
 from dataclasses import dataclass
 from typing import Any, Dict, List
@@ -57,7 +57,7 @@ class KolosInstance:
     def __init__(self, klass: KolosClass):
         self.klass = klass
         self.fields: Dict[str, Any] = {}
-    
+
     def __repr__(self):
         return f"<{self.klass.name} instance>"
 
@@ -272,9 +272,9 @@ class ASTEvaluator:
             klass = self.get_variable(node.class_name)
             if not isinstance(klass, KolosClass):
                 raise EvaluationError(f"'{node.class_name}' is not a class")
-            
+
             instance = KolosInstance(klass)
-            
+
             # Call constructor if it exists
             if "constructor" in klass.methods:
                 constructor = klass.methods["constructor"]
@@ -293,7 +293,7 @@ class ASTEvaluator:
                     call_evaluator.evaluate(constructor.body)
                 except ReturnException:
                     pass
-            
+
             return instance
 
         if isinstance(node, ThisNode):
@@ -311,25 +311,25 @@ class ASTEvaluator:
             obj = self.evaluate(node.obj)
             if not isinstance(obj, KolosInstance):
                 raise EvaluationError("Cannot call method on non-object")
-            
+
             if node.method not in obj.klass.methods:
                 raise EvaluationError(
                     f"Class '{obj.klass.name}' has no method '{node.method}'"
                 )
-            
+
             method = obj.klass.methods[node.method]
             if len(node.args) != len(method.params):
                 raise EvaluationError(
                     f"Method '{node.method}' expects {len(method.params)} arguments, "
                     f"got {len(node.args)}"
                 )
-            
+
             arg_values = [self.evaluate(arg) for arg in node.args]
             scope = dict(method.closure)
             scope["this"] = obj
             for param, arg_val in zip(method.params, arg_values):
                 scope[param] = arg_val
-            
+
             call_evaluator = ASTEvaluator(variables=scope, parent=self)
             try:
                 return call_evaluator.evaluate(method.body)
