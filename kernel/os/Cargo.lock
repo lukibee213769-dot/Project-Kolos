@@ -352,7 +352,6 @@ name = "kolos-os-runner"
 version = "0.1.0"
 dependencies = [
  "bootloader",
- "kernel",
  "ovmf-prebuilt",
 ]
 
