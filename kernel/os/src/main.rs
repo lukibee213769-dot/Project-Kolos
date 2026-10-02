@@ -34,11 +34,13 @@ fn main() {
     eprint!("{}", String::from_utf8_lossy(&output.stderr));
 
     let booted = String::from_utf8_lossy(&output.stdout).contains("KOLOS_BOOT_OK");
-    let expected_exit = matches!(output.status.code(), Some(33) | Some(16));
+    // isa-debug-exit maps 0x10 → (0x10 << 1) | 1 = 33 on Linux
+    let expected_exit = matches!(output.status.code(), Some(33));
     if !booted || !expected_exit {
         eprintln!(
-            "Kolos failed to boot: status {:?}, marker={booted}",
-            output.status.code()
+            "Kolos failed to boot: exit_code={:?}, KOLOS_BOOT_OK_marker={}",
+            output.status.code(),
+            booted,
         );
         std::process::exit(1);
     }

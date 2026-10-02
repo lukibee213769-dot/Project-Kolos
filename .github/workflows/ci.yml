@@ -68,15 +68,18 @@ jobs:
           targets: x86_64-unknown-none,x86_64-unknown-uefi
           components: llvm-tools-preview
       - name: Build and boot Kolos OS in QEMU
+        timeout-minutes: 10
         run: |
           set +e
           cargo run -- uefi 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
           result=${PIPESTATUS[0]}
+          echo "QEMU exit code: $result"
           if [ "$result" -ne 0 ]; then
             excerpt=$(tail -n 30 "$RUNNER_TEMP/kolos-qemu.log" | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
             echo "::error title=Kolos OS QEMU build failed::$excerpt"
             {
               echo '## Kolos OS QEMU failure'
+              echo "Exit code: $result"
               echo '```text'
               tail -n 100 "$RUNNER_TEMP/kolos-qemu.log"
               echo '```'
@@ -84,4 +87,3 @@ jobs:
           fi
           exit "$result"
         working-directory: kernel/os
-
