@@ -62,17 +62,22 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          timeout 180s sudo apt-get install -y --no-install-recommends qemu-system-x86
+          timeout 300s sudo apt-get update
+          timeout 300s sudo apt-get install -y --no-install-recommends qemu-system-x86
       - name: Install nightly Rust and kernel targets
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: x86_64-unknown-none,x86_64-unknown-uefi
           components: llvm-tools-preview,rust-src
-      - name: Build and boot Kolos OS in QEMU
-        timeout-minutes: 10
+      - name: Build Kolos OS kernel, UEFI image, and runner
+        timeout-minutes: 25
+        run: cargo build -Z bindeps --release
+        working-directory: kernel/os
+      - name: Boot Kolos OS in QEMU
+        timeout-minutes: 5
         run: |
           set +e
-          cargo run -Z bindeps 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
+          cargo run -Z bindeps --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
           result=${PIPESTATUS[0]}
           echo "QEMU exit code: $result"
           if [ "$result" -ne 0 ]; then

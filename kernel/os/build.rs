@@ -14,9 +14,15 @@ fn main() {
     let cargo = std::env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
     let release = std::env::var_os("PROFILE").as_deref() == Some("release".as_ref());
 
+    // The nested build must not share the target directory: the outer Cargo
+    // holds an exclusive lock on it for the whole build, so reusing it would
+    // deadlock. The kernel therefore lands in `target/kernel-build/`.
+    let kernel_target_dir = workspace_root.join("target").join("kernel-build");
+
     let mut command = Command::new(&cargo);
     command
         .current_dir(&workspace_root)
+        .env("CARGO_TARGET_DIR", &kernel_target_dir)
         .args(["build", "-p", "kernel", "--target", KERNEL_TARGET]);
     if release {
         command.arg("--release");
@@ -29,7 +35,7 @@ fn main() {
         "`{cargo} build -p kernel` failed with {status}"
     );
 
-    let kernel = find_kernel_artifact(&workspace_root, !release);
+    let kernel = find_kernel_artifact(&kernel_target_dir, !release);
     println!("cargo:rerun-if-changed=kernel/src/main.rs");
     println!("cargo:rerun-if-changed=kernel/Cargo.toml");
 
@@ -41,9 +47,8 @@ fn main() {
     println!("cargo:rustc-env=KOLOS_UEFI_IMAGE={}", image.display());
 }
 
-fn find_kernel_artifact(workspace_root: &Path, debug: bool) -> PathBuf {
-    let kernel = workspace_root
-        .join("target")
+fn find_kernel_artifact(target_dir: &Path, debug: bool) -> PathBuf {
+    let kernel = target_dir
         .join(KERNEL_TARGET)
         .join(if debug { "debug" } else { "release" })
         .join("kernel");
