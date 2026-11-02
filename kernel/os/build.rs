@@ -36,7 +36,7 @@ fn main() {
     );
 
     let kernel = find_kernel_artifact(&kernel_target_dir, !release);
-    println!("cargo:rerun-if-changed=kernel/src/main.rs");
+    println!("cargo:rerun-if-changed=kernel/src");
     println!("cargo:rerun-if-changed=kernel/Cargo.toml");
 
     let image = output_dir.join("kolos-uefi.img");

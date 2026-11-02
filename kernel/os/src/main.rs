@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::thread;
@@ -27,12 +27,11 @@ fn find_ovmf(env_var: &str, system_paths: &[&str]) -> PathBuf {
     );
 }
 
-fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path) -> Child {
+fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path, interactive: bool) -> Child {
     let mut command = Command::new("qemu-system-x86_64");
     command
         .args(["-machine", "q35", "-m", "256M", "-serial", "stdio"])
-        .args(["-display", "none", "-no-reboot", "-no-shutdown"])
-        .args(["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"])
+        .args(["-no-reboot", "-no-shutdown"])
         .args(["-drive", &format!("format=raw,file={image}")])
         .args([
             "-drive",
@@ -47,9 +46,24 @@ fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path) -> Ch
                 "if=pflash,format=raw,unit=1,file={},snapshot=on",
                 vars.display()
             ),
-        ])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+        ]);
+
+    if interactive {
+        // Interactive mode: show display window, no debug-exit, inherit stdio
+        command
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+    } else {
+        // Automated CI / test mode: headless with isa-debug-exit and piped stdio
+        command
+            .args(["-display", "none"])
+            .args(["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
+    }
+
     command
         .spawn()
         .expect("start QEMU; install qemu-system-x86_64 first")
@@ -77,19 +91,34 @@ fn main() {
         ],
     );
 
-    let mut child = spawn_qemu(image, &code, &vars);
-    let mut serial = child.stdout.take().expect("QEMU stdout is piped");
+    let args: Vec<String> = std::env::args().collect();
+    let interactive = args.iter().any(|a| a == "--interactive" || a == "-i" || a == "--gui");
 
-    // The kernel exits QEMU through isa-debug-exit. If it never reaches that
-    // port (boot failure or firmware hang) we must not block CI forever, so the
-    // serial console is drained on a helper thread while this thread polls the
-    // process and kills it once the timeout elapses. No shared lock is involved,
-    // which is what previously deadlocked the watchdog.
+    if interactive {
+        println!("Starting Kolos OS in interactive GUI mode...");
+        let mut child = spawn_qemu(image, &code, &vars, true);
+        let status = child.wait().expect("wait on QEMU process");
+        println!("QEMU exited with {status}");
+        return;
+    }
+
+    // Automated CI test mode
+    let mut child = spawn_qemu(image, &code, &vars, false);
+    let mut serial = child.stdout.take().expect("QEMU stdout is piped");
+    let mut child_stdin = child.stdin.take().expect("QEMU stdin is piped");
+
     let (sender, receiver) = std::sync::mpsc::channel();
     thread::spawn(move || {
         let mut buffer = Vec::new();
         let _ = serial.read_to_end(&mut buffer);
         let _ = sender.send(buffer);
+    });
+
+    // Feeder thread: send test commands to shell, then exit
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(1500));
+        let _ = child_stdin.write_all(b"help\nmem\necho Kolos_CI_OK\nexit\n");
+        let _ = child_stdin.flush();
     });
 
     let deadline = Instant::now() + QEMU_TIMEOUT;
@@ -116,7 +145,8 @@ fn main() {
     print!("{}", String::from_utf8_lossy(&stdout));
     eprint!("{}", String::from_utf8_lossy(&stderr));
 
-    let booted = String::from_utf8_lossy(&stdout).contains("KOLOS_BOOT_OK");
+    let stdout_str = String::from_utf8_lossy(&stdout);
+    let booted = stdout_str.contains("KOLOS_BOOT_OK");
     // isa-debug-exit maps 0x10 -> (0x10 << 1) | 1 = 33 on Linux
     let expected_exit = matches!(status.code(), Some(33));
     if !booted || !expected_exit {
