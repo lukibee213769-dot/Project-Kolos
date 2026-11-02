@@ -1,0 +1,43 @@
+use super::value::Value;
+use alloc::string::String;
+use alloc::vec::Vec;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Instruction {
+    Push(Value),
+    Pop,
+    Dup,
+    Store(String),
+    Load(String),
+    DefFn {
+        name: String,
+        params: Vec<String>,
+        target_ip: usize,
+    },
+    Call {
+        name: String,
+        argc: usize,
+    },
+    Ret,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Pow,
+    Mod,
+    Neg,
+    Not,
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+    And,
+    Or,
+    Jmp(usize),
+    Jz(usize),
+    Jnz(usize),
+    Print,
+    Halt,
+}

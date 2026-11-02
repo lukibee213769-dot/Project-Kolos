@@ -117,7 +117,7 @@ fn main() {
     // Feeder thread: send test commands to shell, then exit
     thread::spawn(move || {
         thread::sleep(Duration::from_millis(1500));
-        let _ = child_stdin.write_all(b"help\nmem\necho Kolos_CI_OK\nexit\n");
+        let _ = child_stdin.write_all(b"help\nmem\nkolos demo\neval (10 + 20) * 3\necho Kolos_CI_OK\nexit\n");
         let _ = child_stdin.flush();
     });
 

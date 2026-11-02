@@ -11,6 +11,7 @@ mod interrupts;
 mod keyboard;
 mod serial;
 mod shell;
+pub mod vm;
 
 use bootloader_api::config::Mapping;
 use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
