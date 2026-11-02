@@ -58,12 +58,12 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v5
-      - name: Install QEMU
+      - name: Install QEMU and OVMF firmware
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           timeout 300s sudo apt-get update
-          timeout 300s sudo apt-get install -y --no-install-recommends qemu-system-x86
+          timeout 300s sudo apt-get install -y --no-install-recommends qemu-system-x86 ovmf
       - name: Install nightly Rust and kernel targets
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -71,13 +71,16 @@ jobs:
           components: llvm-tools-preview,rust-src
       - name: Build Kolos OS kernel, UEFI image, and runner
         timeout-minutes: 25
-        run: cargo build -Z bindeps --release
+        run: cargo build --release
         working-directory: kernel/os
       - name: Boot Kolos OS in QEMU
         timeout-minutes: 5
+        env:
+          KOLOS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE.fd
+          KOLOS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS.fd
         run: |
           set +e
-          cargo run -Z bindeps --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
+          cargo run --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
           result=${PIPESTATUS[0]}
           echo "QEMU exit code: $result"
           if [ "$result" -ne 0 ]; then

@@ -1,11 +1,31 @@
-use ovmf_prebuilt::{Arch, FileType, Prebuilt, Source};
 use std::io::Read;
+use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
 const QEMU_TIMEOUT: Duration = Duration::from_secs(120);
 const POLL_INTERVAL: Duration = Duration::from_millis(200);
+
+/// Locate an OVMF firmware file. Checks env var first, then common system paths.
+fn find_ovmf(env_var: &str, system_paths: &[&str]) -> PathBuf {
+    if let Ok(p) = std::env::var(env_var) {
+        let path = PathBuf::from(&p);
+        if path.exists() {
+            return path;
+        }
+        eprintln!("WARNING: {env_var}={p} does not exist, falling back to system paths");
+    }
+    for &p in system_paths {
+        let path = PathBuf::from(p);
+        if path.exists() {
+            return path;
+        }
+    }
+    panic!(
+        "Could not find OVMF firmware. Set {env_var} or install the ovmf package.\nChecked: {system_paths:?}"
+    );
+}
 
 fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path) -> Child {
     let mut command = Command::new("qemu-system-x86_64");
@@ -37,10 +57,25 @@ fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path) -> Ch
 
 fn main() {
     let image = env!("KOLOS_UEFI_IMAGE");
-    let firmware =
-        Prebuilt::fetch(Source::LATEST, "target/ovmf").expect("download or locate OVMF firmware");
-    let code = firmware.get_file(Arch::X64, FileType::Code);
-    let vars = firmware.get_file(Arch::X64, FileType::Vars);
+
+    // OVMF Code (read-only firmware ROM)
+    let code = find_ovmf(
+        "KOLOS_OVMF_CODE",
+        &[
+            "/usr/share/OVMF/OVMF_CODE.fd",
+            "/usr/share/ovmf/OVMF.fd",
+            "/usr/share/edk2/x64/OVMF_CODE.fd",
+        ],
+    );
+    // OVMF Vars (writable NVRAM — snapshot=on so QEMU never modifies the original)
+    let vars = find_ovmf(
+        "KOLOS_OVMF_VARS",
+        &[
+            "/usr/share/OVMF/OVMF_VARS.fd",
+            "/usr/share/ovmf/OVMF_VARS.fd",
+            "/usr/share/edk2/x64/OVMF_VARS.fd",
+        ],
+    );
 
     let mut child = spawn_qemu(image, &code, &vars);
     let mut serial = child.stdout.take().expect("QEMU stdout is piped");

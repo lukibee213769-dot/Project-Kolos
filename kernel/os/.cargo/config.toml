@@ -1,2 +1,1 @@
-[unstable]
-bindeps = true
+# No unstable Cargo features needed for this build
