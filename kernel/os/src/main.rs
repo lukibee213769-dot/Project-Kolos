@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::thread;
@@ -68,10 +69,11 @@ fn spawn_qemu(
     code: &std::path::Path,
     vars: &std::path::Path,
     interactive: bool,
+    serial_port: Option<u16>,
 ) -> Child {
     let mut command = Command::new("qemu-system-x86_64");
     command
-        .args(["-machine", "q35", "-m", "256M", "-serial", "stdio"])
+        .args(["-machine", "q35", "-m", "256M"])
         .args(["-no-reboot", "-no-shutdown"])
         .args(["-drive", &format!("format=raw,file={image}")])
         .args([
@@ -92,22 +94,65 @@ fn spawn_qemu(
     if interactive {
         // Interactive mode: show display window, no debug-exit, inherit stdio
         command
+            .args(["-serial", "stdio"])
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
     } else {
-        // Automated CI / test mode: headless with isa-debug-exit and piped stdio
+        let port = serial_port.expect("automated QEMU mode needs a serial port");
+        let serial_device =
+            format!("socket,id=serial0,host=127.0.0.1,port={port},server=off,wait=off");
         command
+            .args(["-chardev", &serial_device, "-serial", "chardev:serial0"])
             .args(["-display", "none"])
             .args(["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"])
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
             .stderr(Stdio::piped());
     }
 
     command
         .spawn()
         .expect("start QEMU; install qemu-system-x86_64 first")
+}
+
+fn bind_serial_listener() -> TcpListener {
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
+        .expect("reserve a local TCP port for the QEMU serial console");
+    listener
+        .set_nonblocking(true)
+        .expect("set the QEMU serial listener to nonblocking mode");
+    listener
+}
+
+fn accept_qemu_serial(listener: TcpListener, child: &mut Child) -> TcpStream {
+    let address = listener
+        .local_addr()
+        .expect("read the QEMU serial listener address");
+    let deadline = Instant::now() + Duration::from_secs(10);
+
+    loop {
+        match listener.accept() {
+            Ok((stream, _)) => return stream,
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {}
+            Err(error) => panic!("accept QEMU serial connection at {address}: {error}"),
+        }
+
+        if let Some(status) = child
+            .try_wait()
+            .expect("poll QEMU while waiting for its serial connection")
+        {
+            panic!("QEMU exited before connecting to its serial console: {status}");
+        }
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            let status = child
+                .wait()
+                .expect("reap QEMU after serial connection timeout");
+            panic!("QEMU did not connect to its serial console at {address}: {status}");
+        }
+        thread::sleep(Duration::from_millis(50));
+    }
 }
 
 fn main() {
@@ -141,47 +186,81 @@ fn main() {
 
     if interactive {
         println!("Starting Kolos OS in interactive GUI mode...");
-        let mut child = spawn_qemu(image, &code, &vars, true);
+        let mut child = spawn_qemu(image, &code, &vars, true, None);
         let status = child.wait().expect("wait on QEMU process");
         println!("QEMU exited with {status}");
         return;
     }
 
     // Automated CI test mode
-    let mut child = spawn_qemu(image, &code, &vars, false);
-    let mut serial = child.stdout.take().expect("QEMU stdout is piped");
-    let mut child_stdin = child.stdin.take().expect("QEMU stdin is piped");
+    let listener = bind_serial_listener();
+    let serial_port = listener
+        .local_addr()
+        .expect("read the QEMU serial listener address")
+        .port();
+    let mut child = spawn_qemu(image, &code, &vars, false, Some(serial_port));
+    let serial = accept_qemu_serial(listener, &mut child);
+    let mut serial_reader = serial
+        .try_clone()
+        .expect("clone the QEMU serial stream for output");
 
     let (sender, receiver) = std::sync::mpsc::channel();
+    let (boot_ready_sender, boot_ready_receiver) = std::sync::mpsc::sync_channel(1);
     thread::spawn(move || {
         let mut buffer = Vec::new();
-        let _ = serial.read_to_end(&mut buffer);
-        let _ = sender.send(buffer);
+        let mut chunk = [0; 512];
+        let marker = b"KOLOS_BOOT_OK";
+        let mut marker_sent = false;
+
+        loop {
+            match serial_reader.read(&mut chunk) {
+                Ok(0) => break,
+                Ok(read) => {
+                    buffer.extend_from_slice(&chunk[..read]);
+                    if !marker_sent && buffer.windows(marker.len()).any(|window| window == marker) {
+                        let _ = boot_ready_sender.send(());
+                        marker_sent = true;
+                    }
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(error) => {
+                    eprintln!("Failed to read the QEMU serial console: {error}");
+                    break;
+                }
+            }
+        }
+
+        if let Err(error) = sender.send(buffer) {
+            eprintln!("Failed to deliver QEMU serial output to the smoke test: {error}");
+        }
     });
 
-    // Retry short command lines until the kernel has finished booting.
+    let mut serial_writer = serial;
     thread::spawn(move || {
-        for _ in 0..20 {
-            thread::sleep(Duration::from_millis(1500));
-            for command in [
-                "help",
-                "mem",
-                "kolos demo",
-                "eval (10+20)*3",
-                "echo CI_OK",
-                "exit",
-            ] {
-                let mut line = command.as_bytes().to_vec();
-                line.push(b'\n');
-                if child_stdin
-                    .write_all(&line)
-                    .and_then(|()| child_stdin.flush())
-                    .is_err()
-                {
-                    return;
-                }
-                thread::sleep(Duration::from_millis(250));
+        if let Err(error) = boot_ready_receiver.recv_timeout(Duration::from_secs(30)) {
+            eprintln!("Kolos did not reach KOLOS_BOOT_OK before shell input: {error}");
+            return;
+        }
+
+        thread::sleep(Duration::from_millis(250));
+        for command in [
+            "help",
+            "mem",
+            "kolos demo",
+            "eval (10+20)*3",
+            "echo CI_OK",
+            "exit",
+        ] {
+            let mut line = command.as_bytes().to_vec();
+            line.push(b'\n');
+            if let Err(error) = serial_writer
+                .write_all(&line)
+                .and_then(|()| serial_writer.flush())
+            {
+                eprintln!("Failed to send QEMU shell command {command:?}: {error}");
+                return;
             }
+            thread::sleep(Duration::from_millis(250));
         }
     });
 
@@ -199,7 +278,7 @@ fn main() {
         }
     };
 
-    let stdout = receiver.recv().unwrap_or_default();
+    let stdout = receiver.recv().expect("receive QEMU serial output");
     let stderr = drain_stderr(&mut child);
 
     if timed_out {
