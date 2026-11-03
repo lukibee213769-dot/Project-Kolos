@@ -68,6 +68,10 @@ jobs:
         with:
           targets: x86_64-unknown-none,x86_64-unknown-uefi
           components: llvm-tools-preview,rust-src
+      - name: Test Kolos OS runner
+        timeout-minutes: 25
+        run: cargo test --release
+        working-directory: kernel/os
       - name: Build Kolos OS kernel, UEFI image, and runner
         timeout-minutes: 25
         run: cargo build --release

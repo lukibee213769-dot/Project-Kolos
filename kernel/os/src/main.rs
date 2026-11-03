@@ -159,15 +159,27 @@ fn main() {
         let _ = sender.send(buffer);
     });
 
-    // Feeder thread: periodically send shell commands and exit until QEMU responds or exits
+    // Pace serial input so commands do not overflow QEMU's UART receive buffer.
     thread::spawn(move || {
-        for _ in 0..20 {
-            thread::sleep(Duration::from_millis(1500));
-            let payload = b"\nhelp\nmem\nkolos demo\neval (10 + 20) * 3\necho Kolos_CI_OK\nexit\n";
-            if child_stdin.write_all(payload).is_err() {
-                break; // Process exited and closed stdin
+        thread::sleep(Duration::from_millis(1500));
+        for command in [
+            "help",
+            "mem",
+            "kolos demo",
+            "eval (10 + 20) * 3",
+            "echo Kolos_CI_OK",
+            "exit",
+        ] {
+            for byte in command.bytes() {
+                if child_stdin.write_all(&[byte]).is_err() {
+                    return;
+                }
+                thread::sleep(Duration::from_millis(10));
             }
-            let _ = child_stdin.flush();
+            if child_stdin.write_all(b"\n").is_err() || child_stdin.flush().is_err() {
+                return;
+            }
+            thread::sleep(Duration::from_millis(50));
         }
     });
 
@@ -197,17 +209,17 @@ fn main() {
 
     let stdout_str = String::from_utf8_lossy(&stdout);
     let booted = stdout_str.contains("KOLOS_BOOT_OK");
-    let shell_commands_ok = stdout_str.contains("Kolos_CI_OK")
-        && stdout_str.contains("=> 90")
-        && stdout_str.contains("Final sum = 55");
+    let echo_ok = stdout_str.contains("Kolos_CI_OK");
+    let eval_ok = stdout_str.contains("=> 90");
+    let demo_ok = stdout_str.contains("Final sum = 55");
+    let shell_commands_ok = echo_ok && eval_ok && demo_ok;
     // isa-debug-exit maps 0x10 -> (0x10 << 1) | 1 = 33 on Linux
     let expected_exit = matches!(status.code(), Some(33));
     if !booted || !shell_commands_ok || !expected_exit {
         eprintln!(
-            "Kolos QEMU smoke test failed: exit_code={:?}, KOLOS_BOOT_OK_marker={}, shell_commands_ok={}, timed_out={timed_out}",
+            "Kolos QEMU smoke test failed: exit_code={:?}, KOLOS_BOOT_OK_marker={}, echo_ok={echo_ok}, eval_ok={eval_ok}, demo_ok={demo_ok}, timed_out={timed_out}",
             status.code(),
             booted,
-            shell_commands_ok,
         );
         std::process::exit(1);
     }
