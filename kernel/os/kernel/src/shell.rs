@@ -220,7 +220,6 @@ fn run_command(line: &str) {
                         Instruction::Jmp(4),
                         // exit (ip = 17)
                         Instruction::Load(String::from("sum")),
-                        Instruction::Print,
                         Instruction::Halt,
                     ];
                     let mut vm = Vm::new(program);
