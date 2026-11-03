@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use std::net::{Ipv4Addr, TcpListener, TcpStream};
+use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::thread;
@@ -100,7 +100,8 @@ fn spawn_qemu(
             .stderr(Stdio::inherit());
     } else {
         let port = serial_port.expect("automated QEMU mode needs a serial port");
-        let serial_device = format!("socket,id=serial0,host=127.0.0.1,port={port},server=off");
+        let serial_device =
+            format!("socket,id=serial0,host=127.0.0.1,port={port},server=on,wait=off");
         command
             .args(["-chardev", &serial_device, "-serial", "chardev:serial0"])
             .args(["-display", "none"])
@@ -115,42 +116,47 @@ fn spawn_qemu(
         .expect("start QEMU; install qemu-system-x86_64 first")
 }
 
-fn bind_serial_listener() -> TcpListener {
+fn reserve_serial_port() -> u16 {
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0))
         .expect("reserve a local TCP port for the QEMU serial console");
-    listener
-        .set_nonblocking(true)
-        .expect("set the QEMU serial listener to nonblocking mode");
-    listener
+    let port = listener
+        .local_addr()
+        .expect("read the QEMU serial listener address")
+        .port();
+    drop(listener);
+    port
 }
 
-fn accept_qemu_serial(listener: TcpListener, child: &mut Child) -> TcpStream {
-    let address = listener
-        .local_addr()
-        .expect("read the QEMU serial listener address");
+fn connect_qemu_serial(port: u16, child: &mut Child) -> TcpStream {
+    let address = SocketAddr::from((Ipv4Addr::LOCALHOST, port));
     let deadline = Instant::now() + Duration::from_secs(10);
 
     loop {
-        match listener.accept() {
-            Ok((stream, _)) => return stream,
-            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {}
-            Err(error) => panic!("accept QEMU serial connection at {address}: {error}"),
+        match TcpStream::connect_timeout(&address, Duration::from_millis(100)) {
+            Ok(stream) => return stream,
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    std::io::ErrorKind::ConnectionRefused
+                        | std::io::ErrorKind::TimedOut
+                        | std::io::ErrorKind::WouldBlock
+                ) => {}
+            Err(error) => panic!("connect to QEMU serial console at {address}: {error}"),
         }
 
         if let Some(status) = child
             .try_wait()
             .expect("poll QEMU while waiting for its serial connection")
         {
-            panic!("QEMU exited before connecting to its serial console: {status}");
+            panic!("QEMU exited before opening its serial console at {address}: {status}");
         }
         if Instant::now() >= deadline {
             let _ = child.kill();
             let status = child
                 .wait()
                 .expect("reap QEMU after serial connection timeout");
-            panic!("QEMU did not connect to its serial console at {address}: {status}");
+            panic!("QEMU did not open its serial console at {address}: {status}");
         }
-        thread::sleep(Duration::from_millis(50));
     }
 }
 
@@ -192,13 +198,9 @@ fn main() {
     }
 
     // Automated CI test mode
-    let listener = bind_serial_listener();
-    let serial_port = listener
-        .local_addr()
-        .expect("read the QEMU serial listener address")
-        .port();
+    let serial_port = reserve_serial_port();
     let mut child = spawn_qemu(image, &code, &vars, false, Some(serial_port));
-    let serial = accept_qemu_serial(listener, &mut child);
+    let serial = connect_qemu_serial(serial_port, &mut child);
     let mut serial_reader = serial
         .try_clone()
         .expect("clone the QEMU serial stream for output");
