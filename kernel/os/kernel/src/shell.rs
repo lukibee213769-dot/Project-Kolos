@@ -253,7 +253,7 @@ fn run_command(line: &str) {
         }
 
         "version" => {
-            kprintln!("Kolos OS  v0.2.0-dev  (Rust bare-metal kernel)");
+            kprintln!("Kolos OS  v0.2.1     (Rust bare-metal kernel)");
             kprintln!("Kolos VM  v1.0.1     (In-kernel Bytecode Engine)");
             kprintln!("Kolos Lang v1.0.1     (MIT)");
         }
@@ -297,7 +297,7 @@ pub fn run() -> ! {
     kprintln!("  ██║  ██╗╚██████╔╝███████╗╚██████╔╝███████║");
     kprintln!("  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚══════╝");
     kprintln!();
-    kprintln!("  Kolos OS v0.2.0-dev — type 'help' for commands");
+    kprintln!("  Kolos OS v0.2.1 — type 'help' for commands");
     kprintln!();
 
     let mut line: String = String::new();

@@ -23,7 +23,14 @@ fn main() {
     command
         .current_dir(&workspace_root)
         .env("CARGO_TARGET_DIR", &kernel_target_dir)
-        .args(["build", "-p", "kernel", "--target", KERNEL_TARGET]);
+        .args([
+            "build",
+            "--locked",
+            "-p",
+            "kernel",
+            "--target",
+            KERNEL_TARGET,
+        ]);
     if release {
         command.arg("--release");
     }

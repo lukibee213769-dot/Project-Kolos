@@ -85,7 +85,7 @@ cargo build --release
 cargo test
 ```
 
-### Bootowalne Kolos OS (eksperymentalne)
+### Bootowalne Kolos OS v0.2.1 (eksperymentalne)
 
 `kernel/os/` to osobny workspace nightly Rust z bootowalnym jądrem UEFI x86-64
 i powłoką z bare-metalowym VM Kolos. Smoke test QEMU sprawdza boot, polecenia

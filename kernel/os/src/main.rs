@@ -159,27 +159,27 @@ fn main() {
         let _ = sender.send(buffer);
     });
 
-    // Pace serial input so commands do not overflow QEMU's UART receive buffer.
+    // Send one short command per write to stay within the UART's 16-byte FIFO.
     thread::spawn(move || {
         thread::sleep(Duration::from_millis(1500));
         for command in [
             "help",
             "mem",
             "kolos demo",
-            "eval (10 + 20) * 3",
-            "echo Kolos_CI_OK",
+            "eval (10+20)*3",
+            "echo CI_OK",
             "exit",
         ] {
-            for byte in command.bytes() {
-                if child_stdin.write_all(&[byte]).is_err() {
-                    return;
-                }
-                thread::sleep(Duration::from_millis(10));
-            }
-            if child_stdin.write_all(b"\n").is_err() || child_stdin.flush().is_err() {
+            let mut line = command.as_bytes().to_vec();
+            line.push(b'\n');
+            if let Err(error) = child_stdin
+                .write_all(&line)
+                .and_then(|()| child_stdin.flush())
+            {
+                eprintln!("Failed to send QEMU shell command {command:?}: {error}");
                 return;
             }
-            thread::sleep(Duration::from_millis(50));
+            thread::sleep(Duration::from_millis(250));
         }
     });
 
@@ -209,7 +209,7 @@ fn main() {
 
     let stdout_str = String::from_utf8_lossy(&stdout);
     let booted = stdout_str.contains("KOLOS_BOOT_OK");
-    let echo_ok = stdout_str.contains("Kolos_CI_OK");
+    let echo_ok = stdout_str.contains("CI_OK");
     let eval_ok = stdout_str.contains("=> 90");
     let demo_ok = stdout_str.contains("Final sum = 55");
     let shell_commands_ok = echo_ok && eval_ok && demo_ok;

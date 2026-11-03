@@ -70,17 +70,17 @@ jobs:
           components: llvm-tools-preview,rust-src
       - name: Test Kolos OS runner
         timeout-minutes: 25
-        run: cargo test --release
+        run: cargo test --locked --release
         working-directory: kernel/os
       - name: Build Kolos OS kernel, UEFI image, and runner
         timeout-minutes: 25
-        run: cargo build --release
+        run: cargo build --locked --release
         working-directory: kernel/os
       - name: Boot Kolos OS in QEMU
         timeout-minutes: 5
         run: |
           set +e
-          cargo run --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
+          cargo run --locked --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
           result=${PIPESTATUS[0]}
           echo "QEMU exit code: $result"
           if [ "$result" -ne 0 ]; then

@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Kolos OS 0.2.1] - 2026-11-03
+
+### Fixed
+- Select OVMF firmware with Secure Boot disabled so the unsigned UEFI image can boot.
+- Pace QEMU serial input and check shell echo, expression evaluation, and bytecode VM output in CI.
+- Correct the `kolos demo` loop exit target so it prints the final sum.
+- Run the OS runner's firmware-selection unit tests in CI.
+- Synchronize the OS Cargo lockfile with the current kernel manifest.
+
 ## [1.0.0] - 2026-10-01
 
 ### Added
@@ -60,4 +69,3 @@ image builds and the kernel actually boots in QEMU.
 ### Fixed
 - Modernized build system (pyproject.toml with setuptools backend)
 - Improved CI workflow for better error handling and platform separation
-
