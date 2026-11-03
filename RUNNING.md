@@ -63,3 +63,17 @@ cargo run --release
 ```
 
 Note: CI also builds the kernel on Ubuntu runners; run the commands above locally only if you have `cargo` installed.
+
+Bootable OS smoke test (nightly Rust, QEMU, and OVMF with Secure Boot disabled):
+
+```powershell
+cd kernel\os
+cargo run --release
+```
+
+This boots the UEFI image, exercises `eval`, `kolos demo`, and `echo` through
+the serial shell, then exits QEMU. To start the interactive GUI instead:
+
+```powershell
+cargo run --release -- --interactive
+```

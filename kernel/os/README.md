@@ -6,12 +6,25 @@ This is a separate x86-64 UEFI kernel target. It is intentionally separate from 
 
 - Rust nightly with `llvm-tools-preview`, `x86_64-unknown-none`, and `x86_64-unknown-uefi` (installed by `rust-toolchain.toml`)
 - QEMU with `qemu-system-x86_64`
-- Network access on first build to download Cargo dependencies and OVMF firmware
+- OVMF firmware with Secure Boot disabled
+- Network access on first build to download Cargo dependencies
 
 ## Build and boot
 
 ```sh
-cargo run -- uefi
+cargo run --release
 ```
 
-A successful boot prints `KOLOS_BOOT_OK` on the serial console and exits QEMU successfully. GitHub Actions runs this command on Ubuntu. The kernel is currently a bootable systems-development target, not a general-purpose operating system: storage, input devices, userspace, and a persistent filesystem are not implemented.
+A successful smoke test boots the kernel, runs `eval`, `kolos demo`, and `echo`
+through the serial shell, then exits QEMU successfully. GitHub Actions runs this
+test on Ubuntu.
+
+Run the interactive GUI shell with:
+
+```sh
+cargo run --release -- --interactive
+```
+
+The kernel is currently a bootable systems-development target, not a
+general-purpose operating system: storage, userspace, and a persistent
+filesystem are not implemented.

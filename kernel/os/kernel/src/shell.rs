@@ -208,7 +208,7 @@ fn run_command(line: &str) {
                         Instruction::Load(String::from("i")),
                         Instruction::Push(Value::Int(10)),
                         Instruction::Le,
-                        Instruction::Jz(19),
+                        Instruction::Jz(17),
                         Instruction::Load(String::from("sum")),
                         Instruction::Load(String::from("i")),
                         Instruction::Add,
@@ -218,7 +218,7 @@ fn run_command(line: &str) {
                         Instruction::Add,
                         Instruction::Store(String::from("i")),
                         Instruction::Jmp(4),
-                        // exit (ip = 19)
+                        // exit (ip = 17)
                         Instruction::Load(String::from("sum")),
                         Instruction::Print,
                         Instruction::Halt,

@@ -88,17 +88,17 @@ cargo test
 ### Bootowalne Kolos OS (eksperymentalne)
 
 `kernel/os/` to osobny workspace nightly Rust z bootowalnym jądrem UEFI x86-64
-i testem smoke w QEMU:
+i powłoką z bare-metalowym VM Kolos. Smoke test QEMU sprawdza boot, polecenia
+`eval`, `kolos demo`, `echo` oraz poprawne zamknięcie VM:
 
 ```bash
 cd kernel/os
-rustup component add rust-src llvm-tools-preview
-cargo run -Z bindeps
+cargo run --release
 ```
 
-Wymaga `qemu-system-x86_64` na PATH. Jądro wypisuje mapę pamięci na COM1,
-drukuje znacznik `KOLOS_BOOT_OK` i kończy QEMU przez `isa-debug-exit`; runner
-zabije VM po 120 s, jeśli boot się zawiesi.
+Wymaga `qemu-system-x86_64` oraz OVMF z wyłączonym Secure Boot. Tryb
+interaktywny uruchomisz przez `cargo run --release -- --interactive`. Szczegóły:
+[kernel/os/README.md](kernel/os/README.md).
 
 Patrz: [RUNNING.md](RUNNING.md) — pełne instrukcje.
 
@@ -109,4 +109,3 @@ Zainteresowany? Przeczytaj [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 MIT — patrz [LICENSE](LICENSE).
-

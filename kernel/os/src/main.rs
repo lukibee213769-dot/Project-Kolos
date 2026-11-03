@@ -7,29 +7,38 @@ use std::time::{Duration, Instant};
 const QEMU_TIMEOUT: Duration = Duration::from_secs(120);
 const POLL_INTERVAL: Duration = Duration::from_millis(200);
 
-/// Locate an OVMF firmware file. Checks env var first, then common paths, then scans directories.
+/// Locate an OVMF firmware file with Secure Boot disabled.
 fn find_ovmf(env_var: &str, system_paths: &[&str]) -> PathBuf {
     if let Ok(p) = std::env::var(env_var) {
         let path = PathBuf::from(&p);
-        if path.exists() {
+        if path.exists() && !is_secure_boot_firmware(&path) {
             return path;
         }
-        eprintln!("WARNING: {env_var}={p} does not exist, falling back to system paths");
+        eprintln!(
+            "WARNING: {env_var}={p} is missing or enables Secure Boot, falling back to system paths"
+        );
     }
     for &p in system_paths {
         let path = PathBuf::from(p);
-        if path.exists() {
+        if path.exists() && !is_secure_boot_firmware(&path) {
             return path;
         }
     }
-    // Dynamic scan fallback: check directories for any matching .fd file
-    let pattern = if env_var.contains("CODE") { "CODE" } else { "VARS" };
+    // Secure Boot rejects the unsigned UEFI image built by this project.
+    let pattern = if env_var.contains("CODE") {
+        "CODE"
+    } else {
+        "VARS"
+    };
     for dir in &["/usr/share/OVMF", "/usr/share/ovmf", "/usr/share/edk2/x64"] {
         if let Ok(entries) = std::fs::read_dir(dir) {
             for entry in entries.flatten() {
                 let name = entry.file_name().to_string_lossy().into_owned();
-                if name.ends_with(".fd") && name.contains(pattern) {
-                    let path = entry.path();
+                let path = entry.path();
+                if name.ends_with(".fd")
+                    && name.contains(pattern)
+                    && !is_secure_boot_firmware(&path)
+                {
                     eprintln!("Found OVMF file via directory scan: {}", path.display());
                     return path;
                 }
@@ -41,7 +50,25 @@ fn find_ovmf(env_var: &str, system_paths: &[&str]) -> PathBuf {
     );
 }
 
-fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path, interactive: bool) -> Child {
+fn is_secure_boot_firmware(path: &std::path::Path) -> bool {
+    let name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+
+    name.contains("secboot")
+        || name.contains("snakeoil")
+        || name.contains(".ms.")
+        || name.ends_with(".ms.fd")
+}
+
+fn spawn_qemu(
+    image: &str,
+    code: &std::path::Path,
+    vars: &std::path::Path,
+    interactive: bool,
+) -> Child {
     let mut command = Command::new("qemu-system-x86_64");
     command
         .args(["-machine", "q35", "-m", "256M", "-serial", "stdio"])
@@ -92,7 +119,6 @@ fn main() {
         &[
             "/usr/share/OVMF/OVMF_CODE_4M.fd",
             "/usr/share/OVMF/OVMF_CODE.fd",
-            "/usr/share/OVMF/OVMF_CODE.secboot.fd",
             "/usr/share/ovmf/OVMF.fd",
             "/usr/share/edk2/x64/OVMF_CODE.fd",
         ],
@@ -103,14 +129,15 @@ fn main() {
         &[
             "/usr/share/OVMF/OVMF_VARS_4M.fd",
             "/usr/share/OVMF/OVMF_VARS.fd",
-            "/usr/share/OVMF/OVMF_VARS.secboot.fd",
             "/usr/share/ovmf/OVMF_VARS.fd",
             "/usr/share/edk2/x64/OVMF_VARS.fd",
         ],
     );
 
     let args: Vec<String> = std::env::args().collect();
-    let interactive = args.iter().any(|a| a == "--interactive" || a == "-i" || a == "--gui");
+    let interactive = args
+        .iter()
+        .any(|a| a == "--interactive" || a == "-i" || a == "--gui");
 
     if interactive {
         println!("Starting Kolos OS in interactive GUI mode...");
@@ -170,13 +197,17 @@ fn main() {
 
     let stdout_str = String::from_utf8_lossy(&stdout);
     let booted = stdout_str.contains("KOLOS_BOOT_OK");
+    let shell_commands_ok = stdout_str.contains("Kolos_CI_OK")
+        && stdout_str.contains("=> 90")
+        && stdout_str.contains("Final sum = 55");
     // isa-debug-exit maps 0x10 -> (0x10 << 1) | 1 = 33 on Linux
     let expected_exit = matches!(status.code(), Some(33));
-    if !booted || !expected_exit {
+    if !booted || !shell_commands_ok || !expected_exit {
         eprintln!(
-            "Kolos failed to boot: exit_code={:?}, KOLOS_BOOT_OK_marker={}, timed_out={timed_out}",
+            "Kolos QEMU smoke test failed: exit_code={:?}, KOLOS_BOOT_OK_marker={}, shell_commands_ok={}, timed_out={timed_out}",
             status.code(),
             booted,
+            shell_commands_ok,
         );
         std::process::exit(1);
     }
@@ -189,4 +220,31 @@ fn drain_stderr(child: &mut Child) -> Vec<u8> {
     let mut buffer = Vec::new();
     let _ = stderr.read_to_end(&mut buffer);
     buffer
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_secure_boot_firmware;
+    use std::path::Path;
+
+    #[test]
+    fn secure_boot_firmware_variants_are_rejected() {
+        for path in [
+            "/usr/share/OVMF/OVMF_CODE_4M.snakeoil.fd",
+            "/usr/share/OVMF/OVMF_VARS_4M.ms.fd",
+            "/usr/share/OVMF/OVMF_CODE.secboot.fd",
+        ] {
+            assert!(is_secure_boot_firmware(Path::new(path)), "{path}");
+        }
+    }
+
+    #[test]
+    fn standard_firmware_variants_are_allowed() {
+        for path in [
+            "/usr/share/OVMF/OVMF_CODE_4M.fd",
+            "/usr/share/OVMF/OVMF_VARS.fd",
+        ] {
+            assert!(!is_secure_boot_firmware(Path::new(path)), "{path}");
+        }
+    }
 }
