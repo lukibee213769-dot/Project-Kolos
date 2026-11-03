@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};
+use std::net::{Ipv4Addr, TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::thread;
@@ -100,15 +100,14 @@ fn spawn_qemu(
             .stderr(Stdio::inherit());
     } else {
         let port = serial_port.expect("automated QEMU mode needs a serial port");
-        let serial_device =
-            format!("socket,id=serial0,host=127.0.0.1,port={port},server=off,wait=off");
+        let serial_device = format!("socket,id=serial0,host=127.0.0.1,port={port},server=off");
         command
             .args(["-chardev", &serial_device, "-serial", "chardev:serial0"])
             .args(["-display", "none"])
             .args(["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"])
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::piped());
+            .stderr(Stdio::inherit());
     }
 
     command
