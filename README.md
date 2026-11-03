@@ -1,6 +1,6 @@
 # Projekt Kolos
 
-**Kolos 1.0.1 updated** is the stable release of the Kolos programming language, compiler, Python interpreters, and CLI.
+**Kolos language and Python toolchain 1.0.1** is the stable release of the programming language, compilers, runtimes, developer tools, and CLI. The separately versioned experimental bootable OS is **Kolos OS v0.2.1**; its release is not a new version of the Python package.
 
 The supported distribution contains only the language toolchain described below. The separate Rust kernel and package-manager workspaces are not included in the release artifacts or covered by its support guarantee.
 
@@ -89,15 +89,21 @@ cargo test
 
 `kernel/os/` to osobny workspace nightly Rust z bootowalnym jądrem UEFI x86-64
 i powłoką z bare-metalowym VM Kolos. Smoke test QEMU sprawdza boot, polecenia
-`eval`, `kolos demo`, `echo` oraz poprawne zamknięcie VM:
+`help`, `mem`, `eval`, `kolos demo`, `echo` oraz poprawne zamknięcie QEMU.
+Wersja OS jest niezależna od stabilnego pakietu Python 1.0.1. Wydanie v0.2.1
+zawiera obraz UEFI i sumę SHA-256:
+
+[Kolos OS v0.2.1 — GitHub Release](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1)
 
 ```bash
 cd kernel/os
 cargo run --release
 ```
 
-Wymaga `qemu-system-x86_64` oraz OVMF z wyłączonym Secure Boot. Tryb
-interaktywny uruchomisz przez `cargo run --release -- --interactive`. Szczegóły:
+Wymaga nightly Rust, `qemu-system-x86_64` oraz OVMF z wyłączonym Secure Boot.
+Tryb interaktywny uruchomisz przez `cargo run --release -- --interactive`. OS
+pozostaje prototypem: nie ma trwałego systemu plików, storage ani userspace.
+Szczegóły:
 [kernel/os/README.md](kernel/os/README.md).
 
 Patrz: [RUNNING.md](RUNNING.md) — pełne instrukcje.

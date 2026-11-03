@@ -1,6 +1,12 @@
-# Kolos OS v0.2.1 boot target
+# Kolos OS v0.2.1
 
-This is a separate x86-64 UEFI kernel target. It is intentionally separate from the stable Python language release. It boots through the Rust OSDev UEFI bootloader, accepts shell input by polling COM1, and exits QEMU with a machine-readable status for smoke testing.
+Experimental, bootable x86-64 UEFI OS prototype. This is a separate release from
+the stable Kolos language/Python toolchain (`1.0.1`). The kernel boots through
+the Rust OSDev UEFI bootloader, initializes its heap and framebuffer, and
+provides a shell with PS/2 keyboard and polled COM1 serial input.
+
+The published v0.2.1 UEFI image and SHA-256 checksum are available from the
+[GitHub Release](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1).
 
 ## Requirements
 
@@ -17,9 +23,8 @@ cargo run --release
 
 A successful smoke test boots the kernel, runs `help`, `mem`, `kolos demo`,
 `eval`, and `echo` through the serial shell, then exits QEMU successfully.
-GitHub Actions runs this test on Ubuntu. After the tag's CI run passes, the
-release workflow publishes the bootable `kolos-os-uefi.img` image and its
-SHA-256 checksum.
+GitHub Actions runs this test on Ubuntu. The v0.2.1 tag's CI passed, and the
+release workflow published `kolos-os-uefi.img` and its SHA-256 checksum.
 
 Run the interactive GUI shell with:
 
@@ -27,6 +32,5 @@ Run the interactive GUI shell with:
 cargo run --release -- --interactive
 ```
 
-The kernel is currently a bootable systems-development target, not a
-general-purpose operating system: storage, userspace, and a persistent
-filesystem are not implemented.
+This is a bootable systems-development target, not a general-purpose operating
+system. Storage, userspace, and a persistent filesystem are not implemented.

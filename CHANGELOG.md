@@ -6,10 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Select OVMF firmware with Secure Boot disabled so the unsigned UEFI image can boot.
-- Pace QEMU serial input and check shell echo, expression evaluation, and bytecode VM output in CI.
-- Correct the `kolos demo` loop exit target so it prints the final sum.
+- Poll COM1 for shell input instead of relying on the faulty IRQ4 receive path.
+- Check shell commands, expression evaluation, the bytecode VM result, and clean QEMU exit in CI.
+- Correct the `kolos demo` loop exit target and preserve its final sum as the VM result.
 - Run the OS runner's firmware-selection unit tests in CI.
 - Synchronize the OS Cargo lockfile with the current kernel manifest.
+- Publish the bootable UEFI image and SHA-256 checksum after successful CI for the `os-v0.2.1` tag.
 
 ## [1.0.0] - 2026-10-01
 

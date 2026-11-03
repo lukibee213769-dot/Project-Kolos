@@ -1,5 +1,10 @@
 # Kolos Kernel
 
-`src/` retains the host-executable Rust VM and scheduler model used by the existing kernel tests. The bootable x86-64 UEFI kernel and QEMU smoke test live in [`os/`](os/README.md), in a separate nightly Rust workspace.
+This directory contains two distinct Rust projects with independent versions:
 
-The UEFI target currently boots through the Rust OSDev bootloader, reports the bootloader-provided memory map on COM1, and exits QEMU with a test status. It is an early hobby-OS foundation, not yet a general-purpose operating system; input devices, storage, userspace, and persistent filesystems are not implemented.
+- `src/` is the host-executable Rust VM and scheduler model (`kolos-kernel` crate version `0.1.0`).
+- [`os/`](os/README.md) is the separately versioned bootable Kolos OS **v0.2.1**, built in its own nightly Rust workspace.
+
+The OS boots as an x86-64 UEFI image through the Rust OSDev bootloader. The kernel initializes its descriptor tables, PIC, heap, and framebuffer, then provides a shell with PS/2 keyboard and polled COM1 serial input. GitHub Actions smoke-tests the image in QEMU.
+
+Kolos OS v0.2.1 is an experimental systems-development target, not a general-purpose operating system. It does not provide storage, userspace, or a persistent filesystem. Its version does not change the stable Python distribution version, which remains `1.0.1`.
