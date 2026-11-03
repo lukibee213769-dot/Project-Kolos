@@ -1,8 +1,13 @@
-# Projekt Kolos
+# Projekt Kolos — najnowsze wydanie Kolos OS v0.2.1
 
-**Kolos language and Python toolchain 1.0.1** is the stable release of the programming language, compilers, runtimes, developer tools, and CLI. The separately versioned experimental bootable OS is **Kolos OS v0.2.1**; its release is not a new version of the Python package.
+Najnowszym wydaniem systemu operacyjnego w tym repozytorium jest eksperymentalny,
+bootowalny **Kolos OS v0.2.1** ([pobierz wydanie](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1)).
+Numer `1.0.1` dotyczy osobnego, stabilnego wydania języka Kolos i pakietu Python —
+nie jest poprzednią wersją Kolos OS. Te komponenty są wersjonowane niezależnie.
 
-The supported distribution contains only the language toolchain described below. The separate Rust kernel and package-manager workspaces are not included in the release artifacts or covered by its support guarantee.
+Dystrybucja pakietu Python zawiera wyłącznie opisany niżej toolchain języka.
+Osobne workspace Rust kernela/OS oraz menedżera pakietów nie wchodzą w skład
+artefaktów pakietu Python ani w jego gwarancję wsparcia.
 
 [![CI](https://github.com/lukibee213769-dot/Project-Kolos/actions/workflows/ci.yml/badge.svg)](https://github.com/lukibee213769-dot/Project-Kolos/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -85,15 +90,14 @@ cargo build --release
 cargo test
 ```
 
-### Bootowalne Kolos OS v0.2.1 (eksperymentalne)
+### Kolos OS v0.2.1 — najnowsze wydanie (eksperymentalne)
 
 `kernel/os/` to osobny workspace nightly Rust z bootowalnym jądrem UEFI x86-64
 i powłoką z bare-metalowym VM Kolos. Smoke test QEMU sprawdza boot, polecenia
 `help`, `mem`, `eval`, `kolos demo`, `echo` oraz poprawne zamknięcie QEMU.
-Wersja OS jest niezależna od stabilnego pakietu Python 1.0.1. Wydanie v0.2.1
-zawiera obraz UEFI i sumę SHA-256:
+Wydanie v0.2.1 zawiera obraz UEFI i sumę SHA-256:
 
-[Kolos OS v0.2.1 — GitHub Release](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1)
+[Pobierz najnowsze wydanie Kolos OS v0.2.1 z GitHub Releases](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1)
 
 ```bash
 cd kernel/os
