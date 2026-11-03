@@ -1,6 +1,6 @@
 # Kolos OS v0.2.1 boot target
 
-This is a separate x86-64 UEFI kernel target. It is intentionally separate from the stable Python language release. It boots through the Rust OSDev UEFI bootloader, accepts shell input over COM1 using IRQ4, and exits QEMU with a machine-readable status for smoke testing.
+This is a separate x86-64 UEFI kernel target. It is intentionally separate from the stable Python language release. It boots through the Rust OSDev UEFI bootloader, accepts shell input by polling COM1, and exits QEMU with a machine-readable status for smoke testing.
 
 ## Requirements
 

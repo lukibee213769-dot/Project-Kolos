@@ -1,7 +1,7 @@
 /// Kolos OS interactive shell.
 ///
 /// Input: PS/2 keyboard (IRQ1 → `keyboard::next_char()`)
-///    or: serial COM1 (non-blocking poll via `serial::read_byte()`)
+///    or: serial COM1 (non-blocking polling via `serial::read_byte()`)
 /// Output: framebuffer (if available) + serial (always)
 use alloc::format;
 use alloc::string::String;
@@ -344,7 +344,7 @@ pub fn run() -> ! {
                 break;
             }
             if !drained_any {
-                x86_64::instructions::hlt();
+                core::hint::spin_loop();
             }
         }
     }

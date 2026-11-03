@@ -1,17 +1,10 @@
 /// Raw COM1 serial port driver (no external crates).
 /// Works in QEMU via `-serial stdio`.
 use core::fmt;
-use core::sync::atomic::{AtomicU8, AtomicUsize, Ordering};
 use spin::Mutex;
 use x86_64::instructions::port::Port;
 
 const COM1: u16 = 0x3F8;
-const RX_BUFFER_SIZE: usize = 128;
-const RX_BUFFER_MASK: usize = RX_BUFFER_SIZE - 1;
-
-static RX_BUFFER: [AtomicU8; RX_BUFFER_SIZE] = [const { AtomicU8::new(0) }; RX_BUFFER_SIZE];
-static RX_HEAD: AtomicUsize = AtomicUsize::new(0);
-static RX_TAIL: AtomicUsize = AtomicUsize::new(0);
 
 pub fn init() {
     unsafe {
@@ -31,27 +24,6 @@ pub fn init() {
     }
 }
 
-pub fn enable_receive_interrupt() {
-    unsafe {
-        Port::<u8>::new(COM1 + 1).write(0x01);
-    }
-}
-
-/// Drain UART input into the lock-free buffer from the IRQ4 handler.
-pub fn handle_receive_interrupt() {
-    unsafe {
-        while Port::<u8>::new(COM1 + 5).read() & 0x01 != 0 {
-            let byte = Port::<u8>::new(COM1).read();
-            let head = RX_HEAD.load(Ordering::Relaxed);
-            let next_head = (head + 1) & RX_BUFFER_MASK;
-            if next_head != RX_TAIL.load(Ordering::Acquire) {
-                RX_BUFFER[head].store(byte, Ordering::Relaxed);
-                RX_HEAD.store(next_head, Ordering::Release);
-            }
-        }
-    }
-}
-
 /// Write one byte, spin-waiting for TX buffer empty.
 pub fn write_byte(byte: u8) {
     unsafe {
@@ -62,15 +34,14 @@ pub fn write_byte(byte: u8) {
     }
 }
 
-/// Non-blocking read — returns `None` when no byte is available.
+/// Non-blocking polling read — returns `None` when no byte is available.
 pub fn read_byte() -> Option<u8> {
-    let tail = RX_TAIL.load(Ordering::Relaxed);
-    if tail == RX_HEAD.load(Ordering::Acquire) {
-        return None;
+    unsafe {
+        if Port::<u8>::new(COM1 + 5).read() & 0x01 == 0 {
+            return None;
+        }
+        Some(Port::<u8>::new(COM1).read())
     }
-    let byte = RX_BUFFER[tail].load(Ordering::Relaxed);
-    RX_TAIL.store((tail + 1) & RX_BUFFER_MASK, Ordering::Release);
-    Some(byte)
 }
 
 // ── fmt::Write wrapper ────────────────────────────────────────────────────────
