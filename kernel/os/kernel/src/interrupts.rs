@@ -14,6 +14,7 @@ pub const PIC2_OFFSET: u8 = PIC1_OFFSET + 8;
 pub enum IrqVector {
     Timer = PIC1_OFFSET,
     Keyboard = PIC1_OFFSET + 1,
+    Serial = PIC1_OFFSET + 4,
 }
 
 pub static PICS: Mutex<ChainedPics> =
@@ -37,6 +38,7 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     // Hardware IRQs — IndexMut<u8> is implemented on IDT
     idt[IrqVector::Timer as u8].set_handler_fn(timer_handler);
     idt[IrqVector::Keyboard as u8].set_handler_fn(keyboard_handler);
+    idt[IrqVector::Serial as u8].set_handler_fn(serial_handler);
 
     idt
 });
@@ -44,7 +46,14 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
 pub fn init() {
     IDT.load();
     // SAFETY: PIC offsets are valid and don't overlap with exception vectors.
-    unsafe { PICS.lock().initialize() };
+    unsafe {
+        let mut pics = PICS.lock();
+        pics.initialize();
+        let [mut master_mask, slave_mask] = pics.read_masks();
+        master_mask &= !(1 << 4);
+        pics.write_masks(master_mask, slave_mask);
+    }
+    crate::serial::enable_receive_interrupt();
     x86_64::instructions::interrupts::enable();
 }
 
@@ -86,4 +95,9 @@ extern "x86-interrupt" fn keyboard_handler(_frame: InterruptStackFrame) {
     let scancode: u8 = unsafe { Port::new(0x60_u16).read() };
     crate::keyboard::push_scancode(scancode);
     unsafe { PICS.lock().notify_end_of_interrupt(IrqVector::Keyboard as u8) };
+}
+
+extern "x86-interrupt" fn serial_handler(_frame: InterruptStackFrame) {
+    crate::serial::handle_receive_interrupt();
+    unsafe { PICS.lock().notify_end_of_interrupt(IrqVector::Serial as u8) };
 }

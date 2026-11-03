@@ -1,6 +1,6 @@
 # Kolos OS v0.2.1 boot target
 
-This is a separate x86-64 UEFI kernel target. It is intentionally separate from the stable Python language release. It boots through the Rust OSDev UEFI bootloader, reports the bootloader memory map over COM1, and exits QEMU with a machine-readable status for smoke testing.
+This is a separate x86-64 UEFI kernel target. It is intentionally separate from the stable Python language release. It boots through the Rust OSDev UEFI bootloader, accepts shell input over COM1 using IRQ4, and exits QEMU with a machine-readable status for smoke testing.
 
 ## Requirements
 
@@ -15,10 +15,11 @@ This is a separate x86-64 UEFI kernel target. It is intentionally separate from 
 cargo run --release
 ```
 
-A successful smoke test boots the kernel, runs `eval`, `kolos demo`, and `echo`
-through the serial shell, then exits QEMU successfully. GitHub Actions runs this
-test on Ubuntu. After the tag's CI run passes, the release workflow publishes
-the bootable `kolos-os-uefi.img` image and its SHA-256 checksum.
+A successful smoke test boots the kernel, runs `help`, `mem`, `kolos demo`,
+`eval`, and `echo` through the serial shell, then exits QEMU successfully.
+GitHub Actions runs this test on Ubuntu. After the tag's CI run passes, the
+release workflow publishes the bootable `kolos-os-uefi.img` image and its
+SHA-256 checksum.
 
 Run the interactive GUI shell with:
 
