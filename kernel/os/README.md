@@ -17,7 +17,8 @@ cargo run --release
 
 A successful smoke test boots the kernel, runs `eval`, `kolos demo`, and `echo`
 through the serial shell, then exits QEMU successfully. GitHub Actions runs this
-test on Ubuntu.
+test on Ubuntu. After the tag's CI run passes, the release workflow publishes
+the bootable `kolos-os-uefi.img` image and its SHA-256 checksum.
 
 Run the interactive GUI shell with:
 

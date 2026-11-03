@@ -159,27 +159,29 @@ fn main() {
         let _ = sender.send(buffer);
     });
 
-    // Send one short command per write to stay within the UART's 16-byte FIFO.
+    // Retry short command lines until the kernel has finished booting.
     thread::spawn(move || {
-        thread::sleep(Duration::from_millis(1500));
-        for command in [
-            "help",
-            "mem",
-            "kolos demo",
-            "eval (10+20)*3",
-            "echo CI_OK",
-            "exit",
-        ] {
-            let mut line = command.as_bytes().to_vec();
-            line.push(b'\n');
-            if let Err(error) = child_stdin
-                .write_all(&line)
-                .and_then(|()| child_stdin.flush())
-            {
-                eprintln!("Failed to send QEMU shell command {command:?}: {error}");
-                return;
+        for _ in 0..20 {
+            thread::sleep(Duration::from_millis(1500));
+            for command in [
+                "help",
+                "mem",
+                "kolos demo",
+                "eval (10+20)*3",
+                "echo CI_OK",
+                "exit",
+            ] {
+                let mut line = command.as_bytes().to_vec();
+                line.push(b'\n');
+                if child_stdin
+                    .write_all(&line)
+                    .and_then(|()| child_stdin.flush())
+                    .is_err()
+                {
+                    return;
+                }
+                thread::sleep(Duration::from_millis(250));
             }
-            thread::sleep(Duration::from_millis(250));
         }
     });
 

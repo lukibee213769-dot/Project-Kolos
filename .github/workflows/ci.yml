@@ -76,6 +76,26 @@ jobs:
         timeout-minutes: 25
         run: cargo build --locked --release
         working-directory: kernel/os
+      - name: Stage bootable UEFI image
+        run: |
+          set -euo pipefail
+          image=$(find target/release/build -path '*/out/kolos-uefi.img' -type f -print -quit)
+          if [ -z "$image" ]; then
+            echo "::error::Bootable UEFI image was not generated"
+            exit 1
+          fi
+          cp "$image" "$RUNNER_TEMP/kolos-os-uefi.img"
+          sha256sum "$RUNNER_TEMP/kolos-os-uefi.img" > "$RUNNER_TEMP/kolos-os-uefi.img.sha256"
+        working-directory: kernel/os
+      - name: Upload bootable UEFI image
+        uses: actions/upload-artifact@v4
+        with:
+          name: kolos-os-uefi-image
+          path: |
+            ${{ runner.temp }}/kolos-os-uefi.img
+            ${{ runner.temp }}/kolos-os-uefi.img.sha256
+          if-no-files-found: error
+          retention-days: 7
       - name: Boot Kolos OS in QEMU
         timeout-minutes: 5
         run: |
