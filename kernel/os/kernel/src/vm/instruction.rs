@@ -41,3 +41,4 @@ pub enum Instruction {
     Print,
     Halt,
 }
+

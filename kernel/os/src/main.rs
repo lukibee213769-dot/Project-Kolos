@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 const QEMU_TIMEOUT: Duration = Duration::from_secs(120);
 const POLL_INTERVAL: Duration = Duration::from_millis(200);
 
-/// Locate an OVMF firmware file. Checks env var first, then common system paths.
+/// Locate an OVMF firmware file. Checks env var first, then common paths, then scans directories.
 fn find_ovmf(env_var: &str, system_paths: &[&str]) -> PathBuf {
     if let Ok(p) = std::env::var(env_var) {
         let path = PathBuf::from(&p);
@@ -20,6 +20,20 @@ fn find_ovmf(env_var: &str, system_paths: &[&str]) -> PathBuf {
         let path = PathBuf::from(p);
         if path.exists() {
             return path;
+        }
+    }
+    // Dynamic scan fallback: check directories for any matching .fd file
+    let pattern = if env_var.contains("CODE") { "CODE" } else { "VARS" };
+    for dir in &["/usr/share/OVMF", "/usr/share/ovmf", "/usr/share/edk2/x64"] {
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let name = entry.file_name().to_string_lossy().into_owned();
+                if name.ends_with(".fd") && name.contains(pattern) {
+                    let path = entry.path();
+                    eprintln!("Found OVMF file via directory scan: {}", path.display());
+                    return path;
+                }
+            }
         }
     }
     panic!(
@@ -72,11 +86,13 @@ fn spawn_qemu(image: &str, code: &std::path::Path, vars: &std::path::Path, inter
 fn main() {
     let image = env!("KOLOS_UEFI_IMAGE");
 
-    // OVMF Code (read-only firmware ROM)
+    // OVMF Code (read-only firmware ROM) — support both standard 2MB and Ubuntu 24.04+ 4MB filenames
     let code = find_ovmf(
         "KOLOS_OVMF_CODE",
         &[
+            "/usr/share/OVMF/OVMF_CODE_4M.fd",
             "/usr/share/OVMF/OVMF_CODE.fd",
+            "/usr/share/OVMF/OVMF_CODE.secboot.fd",
             "/usr/share/ovmf/OVMF.fd",
             "/usr/share/edk2/x64/OVMF_CODE.fd",
         ],
@@ -85,7 +101,9 @@ fn main() {
     let vars = find_ovmf(
         "KOLOS_OVMF_VARS",
         &[
+            "/usr/share/OVMF/OVMF_VARS_4M.fd",
             "/usr/share/OVMF/OVMF_VARS.fd",
+            "/usr/share/OVMF/OVMF_VARS.secboot.fd",
             "/usr/share/ovmf/OVMF_VARS.fd",
             "/usr/share/edk2/x64/OVMF_VARS.fd",
         ],
@@ -114,11 +132,16 @@ fn main() {
         let _ = sender.send(buffer);
     });
 
-    // Feeder thread: send test commands to shell, then exit
+    // Feeder thread: periodically send shell commands and exit until QEMU responds or exits
     thread::spawn(move || {
-        thread::sleep(Duration::from_millis(1500));
-        let _ = child_stdin.write_all(b"help\nmem\nkolos demo\neval (10 + 20) * 3\necho Kolos_CI_OK\nexit\n");
-        let _ = child_stdin.flush();
+        for _ in 0..20 {
+            thread::sleep(Duration::from_millis(1500));
+            let payload = b"\nhelp\nmem\nkolos demo\neval (10 + 20) * 3\necho Kolos_CI_OK\nexit\n";
+            if child_stdin.write_all(payload).is_err() {
+                break; // Process exited and closed stdin
+            }
+            let _ = child_stdin.flush();
+        }
     });
 
     let deadline = Instant::now() + QEMU_TIMEOUT;

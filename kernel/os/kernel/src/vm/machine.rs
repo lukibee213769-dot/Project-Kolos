@@ -308,3 +308,4 @@ impl Vm {
         Ok(self.stack.last().cloned())
     }
 }
+

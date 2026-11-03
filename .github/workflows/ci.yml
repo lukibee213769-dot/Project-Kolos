@@ -55,7 +55,6 @@ jobs:
 
   bootable-os-qemu:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
       - name: Install QEMU and OVMF firmware
@@ -75,19 +74,21 @@ jobs:
         working-directory: kernel/os
       - name: Boot Kolos OS in QEMU
         timeout-minutes: 5
-        env:
-          KOLOS_OVMF_CODE: /usr/share/OVMF/OVMF_CODE.fd
-          KOLOS_OVMF_VARS: /usr/share/OVMF/OVMF_VARS.fd
         run: |
           set +e
+          # Detect OVMF firmware paths dynamically on Ubuntu
+          export KOLOS_OVMF_CODE=$(find /usr/share -name "*OVMF_CODE*.fd" 2>/dev/null | head -n 1)
+          export KOLOS_OVMF_VARS=$(find /usr/share -name "*OVMF_VARS*.fd" 2>/dev/null | head -n 1)
+          echo "Detected OVMF CODE: $KOLOS_OVMF_CODE"
+          echo "Detected OVMF VARS: $KOLOS_OVMF_VARS"
           cargo run --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
           result=${PIPESTATUS[0]}
           echo "QEMU exit code: $result"
           if [ "$result" -ne 0 ]; then
             excerpt=$(tail -n 30 "$RUNNER_TEMP/kolos-qemu.log" | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
-            echo "::warning title=Kolos OS QEMU boot::$excerpt"
+            echo "::error title=Kolos OS QEMU boot::$excerpt"
             {
-              echo '## Kolos OS QEMU (experimental)'
+              echo '## Kolos OS QEMU Boot Failure'
               echo "Exit code: $result"
               echo '```text'
               tail -n 100 "$RUNNER_TEMP/kolos-qemu.log"
