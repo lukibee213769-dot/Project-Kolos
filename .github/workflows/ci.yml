@@ -37,9 +37,8 @@ jobs:
           python -m pip install .
           kolos run-sample
 
-  rust-kernel-optional:
+  rust-kernel:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
       - name: Install Rust

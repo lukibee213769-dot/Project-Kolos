@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Kolos OS 0.2.2] - 2026-11-04
+
+### Final release
+- Mark the bootable OS prototype's planned development as concluded; the repository remains open.
+- Align the kernel package, shell banner, and current documentation on Kolos OS v0.2.2.
+- Make the Rust kernel CI job a required release gate instead of allowing its failures.
+- Rebuild and publish the UEFI image and SHA-256 checksum from the passing v0.2.2 tag CI.
+- Preserve the scope limits: this is not a general-purpose OS and has no storage, userspace, or persistent filesystem.
+
 ## [Kolos OS 0.2.1] - 2026-11-03
 
 ### Fixed

@@ -1,12 +1,14 @@
-# Kolos OS v0.2.1
+# Kolos OS v0.2.2 — final prototype release
 
-Experimental, bootable x86-64 UEFI OS prototype. This is a separate release from
-the stable Kolos language/Python toolchain (`1.0.1`). The kernel boots through
+Final planned release of this experimental, bootable x86-64 UEFI OS prototype.
+The repository remains open, but planned feature development has concluded.
+This is separate from the stable Kolos language/Python toolchain (`1.0.1`).
+The kernel boots through
 the Rust OSDev UEFI bootloader, initializes its heap and framebuffer, and
 provides a shell with PS/2 keyboard and polled COM1 serial input.
 
-The published v0.2.1 UEFI image and SHA-256 checksum are available from the
-[GitHub Release](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1).
+The published v0.2.2 UEFI image and SHA-256 checksum are available from the
+[GitHub Release](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.2).
 
 ## Requirements
 
@@ -23,8 +25,9 @@ cargo run --release
 
 A successful smoke test boots the kernel, runs `help`, `mem`, `kolos demo`,
 `eval`, and `echo` through the serial shell, then exits QEMU successfully.
-GitHub Actions runs this test on Ubuntu. The v0.2.1 tag's CI passed, and the
-release workflow published `kolos-os-uefi.img` and its SHA-256 checksum.
+GitHub Actions runs this test on Ubuntu. The v0.2.2 tag must pass all required
+CI jobs, including the Rust kernel checks and QEMU smoke test, before the
+release workflow publishes `kolos-os-uefi.img` and its SHA-256 checksum.
 
 Run the interactive GUI shell with:
 
@@ -34,3 +37,4 @@ cargo run --release -- --interactive
 
 This is a bootable systems-development target, not a general-purpose operating
 system. Storage, userspace, and a persistent filesystem are not implemented.
+See the repository's [final project status](../../PROJECT_STATUS.md).

@@ -1,9 +1,10 @@
-# Projekt Kolos — najnowsze wydanie Kolos OS v0.2.1
+# Projekt Kolos — Kolos OS v0.2.2 (wydanie końcowe)
 
-Najnowszym wydaniem systemu operacyjnego w tym repozytorium jest eksperymentalny,
-bootowalny **Kolos OS v0.2.1** ([pobierz wydanie](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1)).
-Numer `1.0.1` dotyczy osobnego, stabilnego wydania języka Kolos i pakietu Python —
-nie jest poprzednią wersją Kolos OS. Te komponenty są wersjonowane niezależnie.
+**Kolos OS v0.2.2** jest końcowym wydaniem w ramach planowanego rozwoju tego
+eksperymentalnego, bootowalnego prototypu
+([pobierz wydanie](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.2)).
+Repozytorium pozostaje publiczne i otwarte. Stabilny język Kolos i pakiet Python
+mają osobną wersję `1.0.1`; nie jest ona poprzednią wersją OS.
 
 Dystrybucja pakietu Python zawiera wyłącznie opisany niżej toolchain języka.
 Osobne workspace Rust kernela/OS oraz menedżera pakietów nie wchodzą w skład
@@ -90,14 +91,14 @@ cargo build --release
 cargo test
 ```
 
-### Kolos OS v0.2.1 — najnowsze wydanie (eksperymentalne)
+### Kolos OS v0.2.2 — wydanie końcowe prototypu
 
 `kernel/os/` to osobny workspace nightly Rust z bootowalnym jądrem UEFI x86-64
 i powłoką z bare-metalowym VM Kolos. Smoke test QEMU sprawdza boot, polecenia
 `help`, `mem`, `eval`, `kolos demo`, `echo` oraz poprawne zamknięcie QEMU.
-Wydanie v0.2.1 zawiera obraz UEFI i sumę SHA-256:
+Wydanie v0.2.2 zawiera obraz UEFI i sumę SHA-256:
 
-[Pobierz najnowsze wydanie Kolos OS v0.2.1 z GitHub Releases](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.1)
+[Pobierz Kolos OS v0.2.2 z GitHub Releases](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.2)
 
 ```bash
 cd kernel/os
@@ -107,8 +108,9 @@ cargo run --release
 Wymaga nightly Rust, `qemu-system-x86_64` oraz OVMF z wyłączonym Secure Boot.
 Tryb interaktywny uruchomisz przez `cargo run --release -- --interactive`. OS
 pozostaje prototypem: nie ma trwałego systemu plików, storage ani userspace.
-Szczegóły:
+Szczegóły i końcowy status projektu:
 [kernel/os/README.md](kernel/os/README.md).
+[PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 Patrz: [RUNNING.md](RUNNING.md) — pełne instrukcje.
 
