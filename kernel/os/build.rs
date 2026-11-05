@@ -46,12 +46,12 @@ fn main() {
     println!("cargo:rerun-if-changed=kernel/src");
     println!("cargo:rerun-if-changed=kernel/Cargo.toml");
 
-    let image = output_dir.join("kolos-uefi.img");
+    let image = output_dir.join("axiom-uefi.img");
     bootloader::UefiBoot::new(&kernel)
         .create_disk_image(&image)
         .expect("create bootable UEFI disk image");
 
-    println!("cargo:rustc-env=KOLOS_UEFI_IMAGE={}", image.display());
+    println!("cargo:rustc-env=AXIOM_UEFI_IMAGE={}", image.display());
 }
 
 fn find_kernel_artifact(target_dir: &Path, debug: bool) -> PathBuf {

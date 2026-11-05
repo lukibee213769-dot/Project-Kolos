@@ -1,4 +1,4 @@
-# Contributing to Projekt Kolos
+# Contributing to AXIOM
 
 Thank you for wanting to contribute! This document describes the basic workflow.
 

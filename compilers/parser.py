@@ -1,4 +1,4 @@
-﻿"""Recursive-descent parser for the Kolos language."""
+"""Recursive-descent parser for the AXIOM language."""
 
 from dataclasses import dataclass
 from typing import List, Optional
@@ -519,5 +519,5 @@ class Parser:
 
 
 def parse(source: str):
-    """Parse Kolos source code into an AST."""
+    """Parse AXIOM source code into an AST."""
     return Parser(source).parse()

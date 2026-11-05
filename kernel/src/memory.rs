@@ -1,4 +1,4 @@
-/// Physical and Virtual Memory Management for Kolos Kernel.
+/// Physical and Virtual Memory Management for AXIOM Kernel.
 
 pub const PAGE_SIZE: usize = 4096;
 pub const TOTAL_PAGES: usize = 1024; // 4MB prototype memory space

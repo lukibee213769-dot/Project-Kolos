@@ -6,7 +6,7 @@ use vm::{Instruction, Value, Vm};
 
 fn main() {
     println!("========================================");
-    println!("    Kolos Kernel & Runtime OS Prototype  ");
+    println!("    AXIOM Kernel & Runtime OS Prototype  ");
     println!("========================================");
 
     // 1. Initialize Memory Manager
@@ -15,8 +15,8 @@ fn main() {
     // 2. Initialize Scheduler
     scheduler::run();
 
-    // 3. Embedded Kolos VM Execution
-    println!("\n[Kernel:VM] Initializing embedded Kolos VM...");
+    // 3. Embedded AXIOM VM Execution
+    println!("\n[Kernel:VM] Initializing embedded AXIOM VM...");
 
     // Bytecode for: let x = 5; let y = 10; x + y * 2;
     let program = vec![
@@ -50,6 +50,6 @@ fn main() {
     }
 
     println!("========================================");
-    println!("    Kolos Kernel shutdown complete       ");
+    println!("    AXIOM Kernel shutdown complete       ");
     println!("========================================");
 }

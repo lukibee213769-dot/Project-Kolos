@@ -1,4 +1,4 @@
-"""Linter and syntax checker for Kolos source code."""
+"""Linter and syntax checker for AXIOM source code."""
 
 import sys
 from pathlib import Path
@@ -47,4 +47,4 @@ if __name__ == "__main__":
         success = lint_file(sys.argv[1])
         sys.exit(0 if success else 1)
     else:
-        print("Usage: python linter.py <file.kolos>")
+        print("Usage: python linter.py <file.axiom>")

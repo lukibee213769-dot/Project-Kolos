@@ -1,4 +1,4 @@
-# Requirements for Project Kolos prototype
+# Requirements for the AXIOM prototype
 flake8
 build>=1.2.2
 pytest

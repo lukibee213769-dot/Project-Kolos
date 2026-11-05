@@ -1,4 +1,4 @@
-/// Multi-tasking scheduler for Kolos Kernel.
+/// Multi-tasking scheduler for AXIOM Kernel.
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -58,6 +58,6 @@ impl Scheduler {
 pub fn run() {
     let mut scheduler = Scheduler::new();
     scheduler.spawn("idle");
-    scheduler.spawn("kolos_vm_worker");
+    scheduler.spawn("axiom_vm_worker");
     scheduler.run();
 }

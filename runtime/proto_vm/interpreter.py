@@ -1,10 +1,10 @@
-﻿"""A tiny safe expression evaluator and REPL for the proto VM."""
+"""A tiny safe expression evaluator and REPL for the proto VM."""
 import ast
 import platform
 import time
 
 
-VERSION = "v1.0.1"
+VERSION = "v1.0.2"
 
 
 class EvalError(Exception):
@@ -64,20 +64,20 @@ def eval_expr(expr: str):
 
 def print_help():
     print("""
-Kolos proto VM - commands
+AXIOM proto VM - commands
 -------------------------
 help       Show this help
-version    Show Kolos version
+version    Show AXIOM version
 info       Show runtime information
 status     Show runtime status
 diagnostic Show detailed runtime diagnostics
-about      About Kolos
+about      About AXIOM
 history    Show command history
 clear      Clear the console
 reset      Reset REPL state
 time       Show last execution time
-exit       Exit Kolos
-quit       Exit Kolos
+exit       Exit AXIOM
+quit       Exit AXIOM
 
 Expressions:
   +        Addition
@@ -103,12 +103,12 @@ Logic:
 
 
 def print_version():
-    print(f"Kolos proto VM {VERSION}")
+    print(f"AXIOM proto VM {VERSION}")
 
 
 def print_info():
     print(f"""
-Kolos proto VM
+AXIOM proto VM
 --------------
 Version: {VERSION}
 Runtime: Python
@@ -123,7 +123,7 @@ Security: restricted AST
 
 def print_status():
     print(f"""
-Kolos Runtime Status
+AXIOM Runtime Status
 --------------------
 Version:    {VERSION}
 Runtime:    ONLINE
@@ -135,7 +135,7 @@ Security:   ENABLED
 
 def print_diagnostic(execution_count):
     print(f"""
-Kolos Runtime Diagnostic
+AXIOM Runtime Diagnostic
 ------------------------
 Version:     {VERSION}
 Python:      {platform.python_version()}
@@ -150,7 +150,7 @@ Executions:  {execution_count}
 
 def print_about():
     print(f"""
-Kolos
+AXIOM
 -----
 Version: {VERSION}
 Type: Modular experimental runtime
@@ -164,7 +164,7 @@ def print_history(history):
         print("History is empty.")
         return
 
-    print("Kolos Command History")
+    print("AXIOM Command History")
     print("---------------------")
 
     for index, command in enumerate(history, start=1):
@@ -182,7 +182,7 @@ def reset_repl(history):
 
 def repl():
     """Read-eval-print loop."""
-    print(f"Kolos proto VM REPL {VERSION}. Type 'help' for commands.")
+    print(f"AXIOM proto VM REPL {VERSION}. Type 'help' for commands.")
 
     history = []
     last_execution_time = None
@@ -190,7 +190,7 @@ def repl():
 
     while True:
         try:
-            s = input("kolos> ")
+            s = input("axiom> ")
         except (EOFError, KeyboardInterrupt):
             print()
             break

@@ -1,4 +1,4 @@
-"""Package manager for Project Kolos."""
+"""Package manager for the AXIOM language in AXIOM."""
 
 import json
 from pathlib import Path
@@ -18,24 +18,24 @@ class PackageManager:
             "name": name,
             "version": version,
             "author": author,
-            "main": "main.kolos",
+            "main": "main.axiom",
             "dependencies": {},
         }
-        manifest_path = self.workspace_dir / "kolos.json"
+        manifest_path = self.workspace_dir / "axiom.json"
         with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)
 
-        main_file = self.workspace_dir / "main.kolos"
+        main_file = self.workspace_dir / "main.axiom"
         if not main_file.exists():
             with open(main_file, "w", encoding="utf-8") as f:
                 f.write(f'// Package {name}\nprint "Hello from {name}!";\n')
 
-        print(f"Initialized Kolos package '{name}' at {manifest_path}")
+        print(f"Initialized AXIOM package '{name}' at {manifest_path}")
 
     def load_manifest(self):
-        manifest_path = self.workspace_dir / "kolos.json"
+        manifest_path = self.workspace_dir / "axiom.json"
         if not manifest_path.exists():
-            raise FileNotFoundError("kolos.json manifest not found.")
+            raise FileNotFoundError("axiom.json manifest not found.")
         with open(manifest_path, "r", encoding="utf-8") as f:
             return json.load(f)
 

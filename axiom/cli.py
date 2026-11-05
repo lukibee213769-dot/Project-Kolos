@@ -1,4 +1,4 @@
-"""Kolos CLI entrypoint for developer convenience."""
+"""AXIOM CLI entrypoint for developer convenience."""
 import argparse
 from importlib.resources import as_file, files
 import sys
@@ -27,7 +27,7 @@ def run_sample():
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
-    p = argparse.ArgumentParser(prog="kolos")
+    p = argparse.ArgumentParser(prog="axiom")
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("bootstrap")
     sub.add_parser("repl")

@@ -1,14 +1,14 @@
-# Kolos OS v0.2.2 — final prototype release
+# AXIOM OS v0.2.2 — final prototype release
 
 Final planned release of this experimental, bootable x86-64 UEFI OS prototype.
 The repository remains open, but planned feature development has concluded.
-This is separate from the stable Kolos language/Python toolchain (`1.0.1`).
+This is separate from the stable AXIOM language/Python toolchain (`1.0.2`).
 The kernel boots through
 the Rust OSDev UEFI bootloader, initializes its heap and framebuffer, and
 provides a shell with PS/2 keyboard and polled COM1 serial input.
 
 The published v0.2.2 UEFI image and SHA-256 checksum are available from the
-[GitHub Release](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.2).
+[GitHub Release](https://github.com/lukibee213769-dot/AXIOM/releases/tag/os-v0.2.2).
 
 ## Requirements
 
@@ -23,11 +23,11 @@ The published v0.2.2 UEFI image and SHA-256 checksum are available from the
 cargo run --release
 ```
 
-A successful smoke test boots the kernel, runs `help`, `mem`, `kolos demo`,
+A successful smoke test boots the kernel, runs `help`, `mem`, `axiom demo`,
 `eval`, and `echo` through the serial shell, then exits QEMU successfully.
 GitHub Actions runs this test on Ubuntu. The v0.2.2 tag must pass all required
 CI jobs, including the Rust kernel checks and QEMU smoke test, before the
-release workflow publishes `kolos-os-uefi.img` and its SHA-256 checksum.
+release workflow publishes `axiom-os-uefi.img` and its SHA-256 checksum.
 
 Run the interactive GUI shell with:
 

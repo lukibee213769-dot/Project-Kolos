@@ -1,8 +1,8 @@
-﻿"""Tests for Kolos class support."""
+"""Tests for AXIOM class support."""
 
 import pytest
 from compilers.parser import parse
-from runtime.proto_vm.ast_evaluator import evaluate, EvaluationError, KolosInstance
+from runtime.proto_vm.ast_evaluator import evaluate, EvaluationError, AxiomInstance
 
 
 class TestClassDefinition:
@@ -53,8 +53,8 @@ class TestClassDefinition:
         p
         '''
         result = evaluate(parse(code))
-        # Should return a KolosInstance
-        assert isinstance(result, KolosInstance)
+        # Should return a AxiomInstance
+        assert isinstance(result, AxiomInstance)
 
     def test_method_call_with_args(self):
         """Test calling a method with arguments."""

@@ -1,4 +1,4 @@
-﻿"""Evaluator for Kolos compiler AST."""
+"""Evaluator for AXIOM compiler AST."""
 
 from dataclasses import dataclass
 from typing import Any, Dict, List
@@ -40,7 +40,7 @@ class ReturnException(Exception):
 
 
 @dataclass
-class KolosFunction:
+class AxiomFunction:
     name: str
     params: List[str]
     body: object
@@ -48,13 +48,13 @@ class KolosFunction:
 
 
 @dataclass
-class KolosClass:
+class AxiomClass:
     name: str
-    methods: Dict[str, 'KolosFunction']
+    methods: Dict[str, 'AxiomFunction']
 
 
-class KolosInstance:
-    def __init__(self, klass: KolosClass):
+class AxiomInstance:
+    def __init__(self, klass: AxiomClass):
         self.klass = klass
         self.fields: Dict[str, Any] = {}
 
@@ -63,7 +63,7 @@ class KolosInstance:
 
 
 class ASTEvaluator:
-    """Evaluate Kolos AST nodes."""
+    """Evaluate AXIOM AST nodes."""
 
     def __init__(self, variables=None, parent=None):
         self.variables = {} if variables is None else dict(variables)
@@ -121,7 +121,7 @@ class ASTEvaluator:
         if isinstance(node, PropertyAssignNode):
             obj = self.evaluate(node.obj)
             val = self.evaluate(node.value)
-            if not isinstance(obj, KolosInstance):
+            if not isinstance(obj, AxiomInstance):
                 raise EvaluationError("Cannot assign property to non-object")
             obj.fields[node.property] = val
             return val
@@ -162,13 +162,13 @@ class ASTEvaluator:
             return res
 
         if isinstance(node, FunctionDefNode):
-            fn = KolosFunction(node.name, node.params, node.body, self.variables)
+            fn = AxiomFunction(node.name, node.params, node.body, self.variables)
             self.variables[node.name] = fn
             return fn
 
         if isinstance(node, CallNode):
             fn = self.get_variable(node.callee)
-            if not isinstance(fn, KolosFunction):
+            if not isinstance(fn, AxiomFunction):
                 raise EvaluationError(f"'{node.callee}' is not a function")
             if len(node.args) != len(fn.params):
                 raise EvaluationError(
@@ -257,23 +257,23 @@ class ASTEvaluator:
         if isinstance(node, ClassDefNode):
             methods = {}
             for method_def in node.methods:
-                method = KolosFunction(
+                method = AxiomFunction(
                     method_def.name,
                     method_def.params,
                     method_def.body,
                     self.variables
                 )
                 methods[method_def.name] = method
-            klass = KolosClass(node.name, methods)
+            klass = AxiomClass(node.name, methods)
             self.variables[node.name] = klass
             return klass
 
         if isinstance(node, NewNode):
             klass = self.get_variable(node.class_name)
-            if not isinstance(klass, KolosClass):
+            if not isinstance(klass, AxiomClass):
                 raise EvaluationError(f"'{node.class_name}' is not a class")
 
-            instance = KolosInstance(klass)
+            instance = AxiomInstance(klass)
 
             # Call constructor if it exists
             if "constructor" in klass.methods:
@@ -301,7 +301,7 @@ class ASTEvaluator:
 
         if isinstance(node, PropertyAccessNode):
             obj = self.evaluate(node.object)
-            if not isinstance(obj, KolosInstance):
+            if not isinstance(obj, AxiomInstance):
                 raise EvaluationError("Cannot access property on non-object")
             if node.property in obj.fields:
                 return obj.fields[node.property]
@@ -309,7 +309,7 @@ class ASTEvaluator:
 
         if isinstance(node, MethodCallNode):
             obj = self.evaluate(node.obj)
-            if not isinstance(obj, KolosInstance):
+            if not isinstance(obj, AxiomInstance):
                 raise EvaluationError("Cannot call method on non-object")
 
             if node.method not in obj.klass.methods:
@@ -342,5 +342,5 @@ class ASTEvaluator:
 
 
 def evaluate(node, variables=None):
-    """Evaluate a Kolos AST node."""
+    """Evaluate a AXIOM AST node."""
     return ASTEvaluator(variables).evaluate(node)

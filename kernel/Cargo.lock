@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "kolos-kernel"
+name = "axiom-kernel"
 version = "0.1.0"

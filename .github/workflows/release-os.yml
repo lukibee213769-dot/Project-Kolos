@@ -1,4 +1,4 @@
-name: Release Kolos OS
+name: Release AXIOM OS
 
 on:
   workflow_run:
@@ -23,7 +23,7 @@ jobs:
       - name: Download bootable image
         uses: actions/download-artifact@v4
         with:
-          name: kolos-os-uefi-image
+          name: axiom-os-uefi-image
           path: release-assets
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -35,18 +35,18 @@ jobs:
           set -euo pipefail
           version="${RELEASE_TAG#os-v}"
           notes_file="$RUNNER_TEMP/release-notes.md"
-          awk -v heading="## [Kolos OS ${version}]" '
+          awk -v heading="## [AXIOM OS ${version}]" '
             index($0, heading) == 1 { printing = 1 }
             printing && /^## / && index($0, heading) != 1 { exit }
             printing { print }
           ' CHANGELOG.md > "$notes_file"
           if [ ! -s "$notes_file" ]; then
-            echo "::error::No matching Kolos OS release notes found in CHANGELOG.md"
+            echo "::error::No matching AXIOM OS release notes found in CHANGELOG.md"
             exit 1
           fi
           gh release create "$RELEASE_TAG" \
-            release-assets/kolos-os-uefi.img \
-            release-assets/kolos-os-uefi.img.sha256 \
-            --title "Kolos OS v${version}" \
+            release-assets/axiom-os-uefi.img \
+            release-assets/axiom-os-uefi.img.sha256 \
+            --title "AXIOM OS v${version}" \
             --notes-file "$notes_file" \
             --verify-tag

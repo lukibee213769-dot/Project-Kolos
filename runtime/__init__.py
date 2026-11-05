@@ -1,1 +1,1 @@
-"""Runtime package for Project Kolos"""
+"""Runtime package for AXIOM's AXIOM language toolchain."""

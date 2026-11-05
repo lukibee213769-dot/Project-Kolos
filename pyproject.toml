@@ -3,13 +3,13 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kolos"
-version = "1.0.1"
-description = "Kolos programming language, compiler, interpreters, and command-line tools"
+name = "axiom"
+version = "1.0.2"
+description = "AXIOM programming language, compiler, interpreters, and command-line tools"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [{ name = "Kolos Contributors" }]
+authors = [{ name = "AXIOM Contributors" }]
 keywords = ["language", "runtime", "vm", "bytecode", "interpreter"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -27,19 +27,19 @@ dependencies = []
 dev = ["pytest", "flake8", "build>=1.2.2"]
 
 [project.scripts]
-kolos = "kolos.cli:main"
+axiom = "axiom.cli:main"
 
 [project.urls]
-Repository = "https://github.com/lukibee213769-dot/Project-Kolos"
-Issues = "https://github.com/lukibee213769-dot/Project-Kolos/issues"
-Documentation = "https://github.com/lukibee213769-dot/Project-Kolos/tree/main/docs"
+Repository = "https://github.com/lukibee213769-dot/AXIOM"
+Issues = "https://github.com/lukibee213769-dot/AXIOM/issues"
+Documentation = "https://github.com/lukibee213769-dot/AXIOM/tree/main/docs"
 
 [tool.flake8]
 max-line-length = 100
 ignore = ["E203", "W503"]
 
 [tool.setuptools.packages.find]
-include = ["kolos*", "runtime*", "compilers*", "tools*"]
+include = ["axiom*", "runtime*", "compilers*", "tools*"]
 
 [tool.setuptools.package-data]
 "runtime.bytecode" = ["sample.asm"]

@@ -1,4 +1,4 @@
-"""Kolos CLI entrypoint for developer convenience."""
+"""AXIOM CLI entrypoint for developer convenience."""
 import argparse
 import sys
 
@@ -45,23 +45,23 @@ def compile_script(path: str):
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
-    p = argparse.ArgumentParser(prog='kolos')
+    p = argparse.ArgumentParser(prog='axiom')
     sub = p.add_subparsers(dest='cmd')
     sub.add_parser('bootstrap')
     sub.add_parser('repl')
     sub.add_parser('run-sample')
     sub.add_parser('tests', help='run unit tests')
 
-    p_run = sub.add_parser('run', help='run a .kolos or .asm source file')
+    p_run = sub.add_parser('run', help='run a .axiom or .asm source file')
     p_run.add_argument('file', help='path to file')
 
-    p_compile = sub.add_parser('compile', help='compile a .kolos source file to bytecode')
+    p_compile = sub.add_parser('compile', help='compile a .axiom source file to bytecode')
     p_compile.add_argument('file', help='path to file')
 
-    p_fmt = sub.add_parser('fmt', help='format a .kolos source file')
+    p_fmt = sub.add_parser('fmt', help='format a .axiom source file')
     p_fmt.add_argument('file', help='path to file')
 
-    p_lint = sub.add_parser('lint', help='lint a .kolos source file')
+    p_lint = sub.add_parser('lint', help='lint a .axiom source file')
     p_lint.add_argument('file', help='path to file')
 
     p_pkg = sub.add_parser('pkg', help='manage packages')

@@ -2,7 +2,7 @@
 
 
 def main():
-    print("Kolos project bootstrap")
+    print("AXIOM project bootstrap")
     print("Modules:")
     for m in [
         "kernel",

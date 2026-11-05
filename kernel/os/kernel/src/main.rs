@@ -75,7 +75,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
     }
 
     // ── Boot complete marker (checked by CI test runner) ──────────────────────
-    serial_println!("KOLOS_BOOT_OK");
+    serial_println!("AXIOM_BOOT_OK");
 
     // ── Interactive Shell ─────────────────────────────────────────────────────
     shell::run()

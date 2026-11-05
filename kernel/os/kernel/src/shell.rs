@@ -1,4 +1,4 @@
-/// Kolos OS interactive shell.
+/// AXIOM OS interactive shell.
 ///
 /// Input: PS/2 keyboard (IRQ1 → `keyboard::next_char()`)
 ///    or: serial COM1 (non-blocking polling via `serial::read_byte()`)
@@ -35,7 +35,7 @@ fn read_char() -> Option<char> {
     None
 }
 
-// ── Expression compiler (Shunting-yard algorithm to Kolos Bytecode) ──────────
+// ── Expression compiler (Shunting-yard algorithm to AXIOM Bytecode) ──────────
 
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
@@ -163,11 +163,11 @@ fn run_command(line: &str) {
         "" => {}
 
         "help" => {
-            kprintln!("Kolos OS shell commands:");
+            kprintln!("AXIOM OS shell commands:");
             kprintln!("  help            — show this list");
-            kprintln!("  eval <expr>     — evaluate math expr via Kolos VM (e.g. eval 2 + 3 * 4)");
-            kprintln!("  kolos demo      — run Kolos VM loop on bare metal (sum 1..10)");
-            kprintln!("  kolos info      — show VM instruction set status");
+            kprintln!("  eval <expr>     — evaluate math expr via AXIOM VM (e.g. eval 2 + 3 * 4)");
+            kprintln!("  axiom demo      — run AXIOM VM loop on bare metal (sum 1..10)");
+            kprintln!("  axiom info      — show VM instruction set status");
             kprintln!("  echo <text>     — print text");
             kprintln!("  clear           — clear screen");
             kprintln!("  version         — OS + language version");
@@ -187,17 +187,17 @@ fn run_command(line: &str) {
                     match vm.run() {
                         Ok(Some(val)) => kprintln!("=> {}", val),
                         Ok(None) => kprintln!("=> nil"),
-                        Err(e) => kprintln!("Kolos VM Error: {:?}", e),
+                        Err(e) => kprintln!("AXIOM VM Error: {:?}", e),
                     }
                 }
                 Err(err) => kprintln!("Syntax error: {}", err),
             }
         }
 
-        "kolos" => {
+        "axiom" => {
             match arg {
                 "demo" => {
-                    kprintln!("Running Kolos VM bare-metal demo: loop sum(1..10)...");
+                    kprintln!("Running AXIOM VM bare-metal demo: loop sum(1..10)...");
                     // sum = 0; i = 1; while i <= 10 { sum += i; i += 1 }; return sum
                     let program = vec![
                         Instruction::Push(Value::Int(0)),
@@ -230,14 +230,14 @@ fn run_command(line: &str) {
                     }
                 }
                 "info" => {
-                    kprintln!("Kolos Bytecode Virtual Machine (Bare-Metal x86-64)");
+                    kprintln!("AXIOM Bytecode Virtual Machine (Bare-Metal x86-64)");
                     kprintln!("  Engine: Stack-based Bytecode VM");
                     kprintln!("  Instructions supported: 30 ops (Arithmetic, Logic, Stack, Jumps, Calls)");
                     kprintln!("  Memory backend: 2 MiB UEFI identity-mapped heap");
                     kprintln!("  Architecture: no_std, bare metal, zero host dependencies");
                 }
                 _ => {
-                    kprintln!("Usage: kolos demo | kolos info");
+                    kprintln!("Usage: axiom demo | axiom info");
                 }
             }
         }
@@ -252,9 +252,9 @@ fn run_command(line: &str) {
         }
 
         "version" => {
-            kprintln!("Kolos OS  v0.2.2     (Rust bare-metal kernel)");
-            kprintln!("Kolos VM  v1.0.1     (In-kernel Bytecode Engine)");
-            kprintln!("Kolos Lang v1.0.1     (MIT)");
+            kprintln!("AXIOM OS  v0.2.2     (Rust bare-metal kernel)");
+            kprintln!("AXIOM VM  v1.0.2     (In-kernel Bytecode Engine)");
+            kprintln!("AXIOM Lang v1.0.2     (MIT)");
         }
 
         "mem" => {
@@ -296,14 +296,14 @@ pub fn run() -> ! {
     kprintln!("  ██║  ██╗╚██████╔╝███████╗╚██████╔╝███████║");
     kprintln!("  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚══════╝");
     kprintln!();
-    kprintln!("  Kolos OS v0.2.2 — type 'help' for commands");
+    kprintln!("  AXIOM OS v0.2.2 — type 'help' for commands");
     kprintln!();
 
     let mut line: String = String::new();
     let mut last_was_cr = false;
 
     loop {
-        kprint!("kolos> ");
+        kprint!("axiom> ");
 
         // Collect one line of input
         loop {

@@ -1,4 +1,4 @@
-"""Code formatter for Kolos language files."""
+"""Code formatter for AXIOM language files."""
 
 import sys
 from pathlib import Path
@@ -49,4 +49,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         format_file(sys.argv[1])
     else:
-        print("Usage: python formatter.py <file.kolos>")
+        print("Usage: python formatter.py <file.axiom>")

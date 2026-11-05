@@ -1,4 +1,4 @@
-"""AST to Kolos bytecode compiler with label resolution."""
+"""AST to AXIOM bytecode compiler with label resolution."""
 
 from typing import Any, List, Tuple
 
@@ -51,7 +51,7 @@ class Label:
 
 
 class Compiler:
-    """Compiles Kolos AST into VM bytecode tuples with jump resolution."""
+    """Compiles AXIOM AST into VM bytecode tuples with jump resolution."""
 
     def __init__(self):
         self.instructions: List[Tuple[str, Any]] = []
@@ -199,7 +199,7 @@ class Compiler:
 
 
 def compile_node(node):
-    """Compile one AST node into flat Kolos bytecode."""
+    """Compile one AST node into flat AXIOM bytecode."""
     if isinstance(node, NumberNode):
         return ["PUSH", node.value]
 
@@ -271,7 +271,7 @@ def compile_node(node):
 
 
 def compile_ast(node):
-    """Compile an AST into flat Kolos bytecode."""
+    """Compile an AST into flat AXIOM bytecode."""
     return compile_node(node)
 
 

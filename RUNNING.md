@@ -1,8 +1,8 @@
-# How to run Project Kolos (summary)
+# How to run AXIOM (summary)
 
 ## Version scope
 
-- The stable Kolos language and Python toolchain release is `1.0.1`.
+- The stable AXIOM language and Python toolchain release is `1.0.2`.
 - The final planned experimental bootable OS release is `v0.2.2`, maintained separately under `kernel/os/`.
 - The host Rust kernel crate has its own Cargo version and is not the OS release version.
 
@@ -70,7 +70,7 @@ cargo run --release
 
 Note: CI also builds the kernel on Ubuntu runners; run the commands above locally only if you have `cargo` installed.
 
-Bootable Kolos OS v0.2.2 smoke test (nightly Rust, QEMU, and OVMF with Secure Boot disabled):
+Bootable AXIOM OS v0.2.2 smoke test (nightly Rust, QEMU, and OVMF with Secure Boot disabled):
 
 ```powershell
 cd kernel\os
@@ -78,9 +78,9 @@ cargo run --release
 ```
 
 This builds and boots the UEFI image, exercises `help`, `mem`, `eval`,
-`kolos demo`, and `echo` through the serial shell, then exits QEMU. The
+`axiom demo`, and `echo` through the serial shell, then exits QEMU. The
 published v0.2.2 image and SHA-256 checksum are on the
-[GitHub Release page](https://github.com/lukibee213769-dot/Project-Kolos/releases/tag/os-v0.2.2).
+[GitHub Release page](https://github.com/lukibee213769-dot/AXIOM/releases/tag/os-v0.2.2).
 To start the interactive GUI instead:
 
 ```powershell

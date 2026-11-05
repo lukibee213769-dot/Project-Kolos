@@ -1,4 +1,4 @@
-from kolos.cli import run_sample
+from axiom.cli import run_sample
 
 
 def test_run_sample_executes_packaged_assembly(capsys):

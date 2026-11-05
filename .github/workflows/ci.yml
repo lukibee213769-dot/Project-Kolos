@@ -35,7 +35,7 @@ jobs:
       - name: Smoke-test installed CLI
         run: |
           python -m pip install .
-          kolos run-sample
+          axiom run-sample
 
   rust-kernel:
     runs-on: ubuntu-latest
@@ -67,49 +67,49 @@ jobs:
         with:
           targets: x86_64-unknown-none,x86_64-unknown-uefi
           components: llvm-tools-preview,rust-src
-      - name: Test Kolos OS runner
+      - name: Test AXIOM OS runner
         timeout-minutes: 25
         run: cargo test --locked --release
         working-directory: kernel/os
-      - name: Build Kolos OS kernel, UEFI image, and runner
+      - name: Build AXIOM OS kernel, UEFI image, and runner
         timeout-minutes: 25
         run: cargo build --locked --release
         working-directory: kernel/os
       - name: Stage bootable UEFI image
         run: |
           set -euo pipefail
-          image=$(find target/release/build -path '*/out/kolos-uefi.img' -type f -print -quit)
+          image=$(find target/release/build -path '*/out/axiom-uefi.img' -type f -print -quit)
           if [ -z "$image" ]; then
             echo "::error::Bootable UEFI image was not generated"
             exit 1
           fi
-          cp "$image" "$RUNNER_TEMP/kolos-os-uefi.img"
-          sha256sum "$RUNNER_TEMP/kolos-os-uefi.img" > "$RUNNER_TEMP/kolos-os-uefi.img.sha256"
+          cp "$image" "$RUNNER_TEMP/axiom-os-uefi.img"
+          sha256sum "$RUNNER_TEMP/axiom-os-uefi.img" > "$RUNNER_TEMP/axiom-os-uefi.img.sha256"
         working-directory: kernel/os
       - name: Upload bootable UEFI image
         uses: actions/upload-artifact@v4
         with:
-          name: kolos-os-uefi-image
+          name: axiom-os-uefi-image
           path: |
-            ${{ runner.temp }}/kolos-os-uefi.img
-            ${{ runner.temp }}/kolos-os-uefi.img.sha256
+            ${{ runner.temp }}/axiom-os-uefi.img
+            ${{ runner.temp }}/axiom-os-uefi.img.sha256
           if-no-files-found: error
           retention-days: 7
-      - name: Boot Kolos OS in QEMU
+      - name: Boot AXIOM OS in QEMU
         timeout-minutes: 5
         run: |
           set +e
-          cargo run --locked --release 2>&1 | tee "$RUNNER_TEMP/kolos-qemu.log"
+          cargo run --locked --release 2>&1 | tee "$RUNNER_TEMP/axiom-qemu.log"
           result=${PIPESTATUS[0]}
           echo "QEMU exit code: $result"
           if [ "$result" -ne 0 ]; then
-            excerpt=$(tail -n 30 "$RUNNER_TEMP/kolos-qemu.log" | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
-            echo "::error title=Kolos OS QEMU boot::$excerpt"
+            excerpt=$(tail -n 30 "$RUNNER_TEMP/axiom-qemu.log" | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g')
+            echo "::error title=AXIOM OS QEMU boot::$excerpt"
             {
-              echo '## Kolos OS QEMU Boot Failure'
+              echo '## AXIOM OS QEMU Boot Failure'
               echo "Exit code: $result"
               echo '```text'
-              tail -n 100 "$RUNNER_TEMP/kolos-qemu.log"
+              tail -n 100 "$RUNNER_TEMP/axiom-qemu.log"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
           fi

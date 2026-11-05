@@ -1,4 +1,4 @@
-// Kolos Example Program
+// AXIOM Example Program
 
 fn factorial(n) {
     if n <= 1 {
@@ -15,7 +15,7 @@ fn fibonacci(n) {
 }
 
 // Demo calls
-print "=== Kalkulacje Kolos ===";
+print "=== Kalkulacje AXIOM ===";
 
 let fact5_str = "Silnia 5";
 print fact5_str;

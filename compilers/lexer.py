@@ -1,4 +1,4 @@
-"""Lexer for the Kolos language."""
+"""Lexer for the AXIOM language."""
 
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -62,7 +62,7 @@ class LexerError(Exception):
 
 
 class Lexer:
-    """Convert Kolos source code into tokens."""
+    """Convert AXIOM source code into tokens."""
 
     def __init__(self, source: str):
         self.source = source

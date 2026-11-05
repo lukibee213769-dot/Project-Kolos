@@ -161,11 +161,11 @@ fn connect_qemu_serial(port: u16, child: &mut Child) -> TcpStream {
 }
 
 fn main() {
-    let image = env!("KOLOS_UEFI_IMAGE");
+    let image = env!("AXIOM_UEFI_IMAGE");
 
     // OVMF Code (read-only firmware ROM) — support both standard 2MB and Ubuntu 24.04+ 4MB filenames
     let code = find_ovmf(
-        "KOLOS_OVMF_CODE",
+        "AXIOM_OVMF_CODE",
         &[
             "/usr/share/OVMF/OVMF_CODE_4M.fd",
             "/usr/share/OVMF/OVMF_CODE.fd",
@@ -175,7 +175,7 @@ fn main() {
     );
     // OVMF Vars (writable NVRAM — snapshot=on so QEMU never modifies the original)
     let vars = find_ovmf(
-        "KOLOS_OVMF_VARS",
+        "AXIOM_OVMF_VARS",
         &[
             "/usr/share/OVMF/OVMF_VARS_4M.fd",
             "/usr/share/OVMF/OVMF_VARS.fd",
@@ -190,7 +190,7 @@ fn main() {
         .any(|a| a == "--interactive" || a == "-i" || a == "--gui");
 
     if interactive {
-        println!("Starting Kolos OS in interactive GUI mode...");
+        println!("Starting AXIOM OS in interactive GUI mode...");
         let mut child = spawn_qemu(image, &code, &vars, true, None);
         let status = child.wait().expect("wait on QEMU process");
         println!("QEMU exited with {status}");
@@ -210,7 +210,7 @@ fn main() {
     thread::spawn(move || {
         let mut buffer = Vec::new();
         let mut chunk = [0; 512];
-        let marker = b"KOLOS_BOOT_OK";
+        let marker = b"AXIOM_BOOT_OK";
         let mut marker_sent = false;
 
         loop {
@@ -239,7 +239,7 @@ fn main() {
     let mut serial_writer = serial;
     thread::spawn(move || {
         if let Err(error) = boot_ready_receiver.recv_timeout(Duration::from_secs(30)) {
-            eprintln!("Kolos did not reach KOLOS_BOOT_OK before shell input: {error}");
+            eprintln!("AXIOM did not reach AXIOM_BOOT_OK before shell input: {error}");
             return;
         }
 
@@ -247,7 +247,7 @@ fn main() {
         for command in [
             "help",
             "mem",
-            "kolos demo",
+            "axiom demo",
             "eval (10+20)*3",
             "echo CI_OK",
             "exit",
@@ -283,14 +283,14 @@ fn main() {
     let stderr = drain_stderr(&mut child);
 
     if timed_out {
-        eprintln!("Kolos boot timed out after {QEMU_TIMEOUT:?}; QEMU never exited");
+        eprintln!("AXIOM boot timed out after {QEMU_TIMEOUT:?}; QEMU never exited");
     }
 
     print!("{}", String::from_utf8_lossy(&stdout));
     eprint!("{}", String::from_utf8_lossy(&stderr));
 
     let stdout_str = String::from_utf8_lossy(&stdout);
-    let booted = stdout_str.contains("KOLOS_BOOT_OK");
+    let booted = stdout_str.contains("AXIOM_BOOT_OK");
     let echo_ok = stdout_str.contains("CI_OK");
     let eval_ok = stdout_str.contains("=> 90");
     let demo_ok = stdout_str.contains("Final sum = 55");
@@ -299,7 +299,7 @@ fn main() {
     let expected_exit = matches!(status.code(), Some(33));
     if !booted || !shell_commands_ok || !expected_exit {
         eprintln!(
-            "Kolos QEMU smoke test failed: exit_code={:?}, KOLOS_BOOT_OK_marker={}, echo_ok={echo_ok}, eval_ok={eval_ok}, demo_ok={demo_ok}, timed_out={timed_out}",
+            "AXIOM QEMU smoke test failed: exit_code={:?}, AXIOM_BOOT_OK_marker={}, echo_ok={echo_ok}, eval_ok={eval_ok}, demo_ok={demo_ok}, timed_out={timed_out}",
             status.code(),
             booted,
         );

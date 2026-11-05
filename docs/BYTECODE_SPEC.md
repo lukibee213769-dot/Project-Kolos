@@ -1,6 +1,6 @@
-# Bytecode Specification (Kolos)
+# Bytecode Specification (AXIOM)
 
-This document specifies the bytecode instructions and format used by the Kolos Virtual Machine.
+This document specifies the bytecode instructions and format used by the AXIOM Virtual Machine.
 
 ## Format
 - A program is a sequential list of instruction tuples `(OPCODE, ARG)` where `ARG` is `None` for operations without an immediate argument.
